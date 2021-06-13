@@ -4,16 +4,17 @@
 
 \usepackage{etex}               % extend TeX's register allocations to allow space for more packages
 
-\input{common/art-draftconfig}  % Use this to produce a DRAFT version of the doc
-\newcommand{\ISDRAFT}{YES}      % goes w pkg xstring for conditional text
+\input{config/art-draftconfig}  % Enable additional annotations for draft mode.
+\newcommand{\ISDRAFT}{YES}      % Tell conditional formating that this is a draft.
 
-\input{common/if-preamble}      % usepackage calls
+\input{config/if-preamble}      % usepackage calls
 \graphicspath{{figures/}}
 
 
 \begin{document}
 
-\input{common/if-init}      % parts of configuration that must come after \begin{document}
-\input{body/body.tex}       % inputs chapter files
+\input{titlepage}           % Title page
+\input{config/toc_etc}      % Table of contents etc
+\input{body/body.tex}       % Main body of the document
 
 \end{document}

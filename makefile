@@ -6,17 +6,17 @@
 all: draft
 
 draft:  draft.tex
-	latexmk --pdf --output-directory=draft draft.tex
+	latexmk -g --pdf --output-directory=draft-dir draft.tex
 
 print:  print.tex
-	latexmk --pdf --output-directory=print print.tex
+	latexmk -g --pdf --output-directory=print-dir print.tex
 
 # Clean up all generated files including .pdf
 clean:
-	latexmk -C --output-directory=draft draft
-	latexmk -C --output-directory=print print
+	latexmk -C --output-directory=draft-dir draft
+	latexmk -C --output-directory=print-dir print
 
 # Clean up all generated files except for the .pdf
 publish:
-	latexmk -c --output-directory=draft draft
-	latexmk -c --output-directory=print print
+	latexmk -c --output-directory=draft-dir draft
+	latexmk -c --output-directory=print-dir print

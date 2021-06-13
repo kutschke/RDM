@@ -40,7 +40,7 @@
 \addeditor{rob}
 \usepackage{alltt} %AH added 6/12/13 - like verbatim but can use commands inside
 \usepackage{courier}  % AH added 6/17/13 
-\input{common/procedure-format}
+\input{config/procedure-format}
 % see init.tex for use of these to produce draft behavior (linenumbers)
 \usepackage[pagewise]{lineno}
 
@@ -48,7 +48,7 @@
 \usepackage[parfill]{parskip}
 %For glossary:
 %\usepackage[intoc]{nomencl}
-%\input{common/make-glossary}  %contents shown here; moved to sep file 4/3/14 AH
+%\input{config/make-glossary}  %contents shown here; moved to sep file 4/3/14 AH
           %\makenomenclature
           %\renewcommand{\nomname}{\art Glossary}
           % \setlength{\nomlabelwidth}{0.2\textwidth}
@@ -61,9 +61,9 @@
 \makeindex
 % \usepackage{ifthen}   May want later to use same files in userguide and workbook
 
-\input{common/if-defs}
-\input{common/if-tikz-styles}
-\input{common/if-hyperref}
+\input{config/if-defs}
+\input{config/if-tikz-styles}
+\input{config/if-hyperref}
 
 %\lstloadlanguages{C++}
 %\lstset{

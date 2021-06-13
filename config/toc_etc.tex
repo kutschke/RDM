@@ -1,50 +1,13 @@
-%                                                                      TITLE PAGE
-\begin{center}
-  {\Huge Mu2e Data Logging}
-  \vskip 0.1 cm
-
-  Rob Kutschke
-\vskip 0.1 cm
-Fermilab Scientific Computing Division
-
-\vskip 0.1 cm
-
-\IfStrEq{\ISDRAFT}{YES}{\large Working draft; git tag: \gitTag\\ }
-
+% Insert
+%   - Table of Contents to level 1
+%   - Table of Contents to level 4
+%   - List of Figures
+%   - List of Tables
+%   - Commented out: glossary, index ...
+% Setup page numbering etc for the start of the body
 %
-\IfStrEq{\ISDRAFT}{NO}{\large  Mu2e-doc-\docdbVersion\\ }
-
 %
-  %  {\Large Mu2e-doc-\docdbVersion} \IfStrEq{\ISDRAFT}{YES}{, working draft\\ }
-
-\vskip 0.5 cm
-
-%git Tag: \gitTag
-
-\today
-
-\vskip 3.5 cm
-Abstract
-\end{center}
-\medskip
-
-The purpose of the Mu2e Data Logging system is to move data
-that is produced by the online system to long term storage offline;
-for most data the long term storae will be files on tape
-but for some data it may be offline databases.
-This document describes the background information
-that is needed to design the Mu2e Data Logging System.
-In particular it describes
-the many different files that will be produced by the online system.
-It describes technical constraints that must be obeyed by the system
-and lists questions that need to be answered during the design process.
-It also identifies which of the above information may change as the
-design of the online system evolves.
-\cleardoublepage
-
 %                                                   TABLE OF CONTENTS
-%\setcounter{page}{1}    % Removed this to get continuous numbering thru'out doc
-%\renewcommand{\thepage}{\roman{page}}
 \pagenumbering{roman}
 \pagestyle{plain}
 %  \setcounter{tocdepth}{3}
