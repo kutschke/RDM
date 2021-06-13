@@ -1,0 +1,96 @@
+%\documentclass[twoside,openright]{report} %This class automatically uses \chapter and \section 
+% changed by AH 3/31/14
+%\documentclass{art-workbook}    Now done in art-doc-draft
+
+%\usepackage{colordvi}
+\usepackage{epsf}
+%\voffset -0.5 in
+\usepackage{graphicx}
+\usepackage{printlen}
+
+\usepackage{color}
+
+% for alternative to verbatim, can recognize parts of some coding
+% languages; supports C++, (no yaml or javascript); for fcl, try what,
+% Java ?
+% use like:
+% \begin{lstlisting}
+% ...
+% \end{lstlisting}
+%\usepackage{listings}
+\usepackage{styles/cpplistings}
+\usepackage{tocbibind}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{makeidx} 
+%\usepackage{showidx}  % Use only when proofreading; this shows in the right margin. 
+% new below \usepackage{hyperref} %create hyperlinks; use with \href{<my_url>}{<description>} or \url{<my_url>}
+\usepackage{textpos} %put graphics in margins
+
+\usepackage{marginnote}
+\usepackage[marginparsep=.2cm, marginparwidth=2cm]{geometry}
+
+\usepackage{xspace}
+\usepackage[inline]{styles/TrackChanges} 
+\usepackage{manfnt}
+\usepackage{chappg}
+\usepackage{amsmath}
+\usepackage{rotating}
+\addeditor{anne}
+\addeditor{rob}
+\usepackage{alltt} %AH added 6/12/13 - like verbatim but can use commands inside
+\usepackage{courier}  % AH added 6/17/13 
+\input{common/procedure-format}
+% see init.tex for use of these to produce draft behavior (linenumbers)
+\usepackage[pagewise]{lineno}
+
+\usepackage{color} % added 4/24/13 by anne
+\usepackage[parfill]{parskip}
+%For glossary:
+%\usepackage[intoc]{nomencl}
+%\input{common/make-glossary}  %contents shown here; moved to sep file 4/3/14 AH
+          %\makenomenclature
+          %\renewcommand{\nomname}{\art Glossary}
+          % \setlength{\nomlabelwidth}{0.2\textwidth}
+
+% Set how chapters are displayed.  See init.tex for setting how the
+% chapter in the header is displayed.
+\titleformat{\chapter}[block]
+  {\bf\normalfont\Huge\sffamily}{\thechapter}{20pt}{\LARGE\bf\sffamily}
+
+\makeindex
+% \usepackage{ifthen}   May want later to use same files in userguide and workbook
+
+\input{common/if-defs}
+\input{common/if-tikz-styles}
+\input{common/if-hyperref}
+
+%\lstloadlanguages{C++}
+%\lstset{
+%language=C++,
+%backgroundcolor=\color{tikz-bkgd-color}
+%}  -------------------------- moved to if-defs ------------
+
+
+% I think this adds entry for bibliog to TOC
+% \usepackage{tocbibind}
+%%Rename bibliography to References 
+%\renewcommand\bibname{References}
+
+
+% Can provide command specifics, e.g.,
+% \providecommand{\nm}{\mbox{\mybold $\nu_\mu$}}
+
+% The proper typesetting of NOvA
+% The orginal version from Andrew Norman.  I think it looks better with some hand-kerning.
+%\newcommand{\novaOrig}{NO\ensuremath{\nu}A\xspace}
+\newcommand{\nova}{NO\ensuremath{\nu\mkern-1.55mu}A\xspace}
+
+% http://paws.wcu.edu/tsfoguel/tikzpgfmanual.pdf  5/1/14 Anne
+\usepackage{tikz}
+\usetikzlibrary{shapes,arrows}
+
+\usepackage{alphalph}  % to help with counter too large error when it hits a footnote 5/2/14
+\usepackage{shorttoc}
+\usepackage{placeins}  % to use FloatBarrier
+\usepackage{xstring}  % for conditional text to include different material in print vs draft 6/27/14

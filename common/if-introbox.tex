@@ -1,0 +1,37 @@
+% \include{lbnepaper/introbox.tex}
+%
+% provides an "intro" or "executive summary" box.
+
+% Use in a content file as:
+% \begin{introbox}
+%   ...content...
+% \end{introbox}
+
+\usepackage[xcolor,framemethod=tikz,nobreak=false]{mdframed}%true]{mdframed}
+\usetikzlibrary{shadows}
+
+
+%\definecolor{introcolor}{rgb}{255,255,0}
+\definecolor{introcolor}{cmyk}{0.16, 0.00, 0.51, 0.36} %sciopp-light-moss-green
+
+\newcommand{\IntroBackgroundColor}{introcolor}
+\newcommand{\IntroLineColor}{introcolor}
+
+% An "intro" frame to use for procedures for which the steps should remain together.
+% Place content in an "introbox" environment.
+\mdfdefinestyle{introstyle}{frametitle=}
+\mdfapptodefinestyle{introstyle}{linecolor=\IntroLineColor}
+\mdfapptodefinestyle{introstyle}{backgroundcolor=\IntroBackgroundColor}
+\mdfapptodefinestyle{introstyle}{roundcorner=7pt}
+\mdfapptodefinestyle{introstyle}{outerlinewidth=1pt}
+\mdfapptodefinestyle{introstyle}{frametitlefont=\normalfont\ttfamily}
+\mdfapptodefinestyle{introstyle}{frametitlealignment=\centering}
+\mdfapptodefinestyle{introstyle}{innerleftmargin=15pt}
+\mdfapptodefinestyle{introstyle}{innerrightmargin=15pt}
+\mdfapptodefinestyle{introstyle}{innertopmargin=15pt}
+\mdfapptodefinestyle{introstyle}{innerbottommargin=15pt}
+
+\newmdenv[style=introstyle]{introbox}
+
+
+

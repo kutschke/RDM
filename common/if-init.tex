@@ -1,0 +1,117 @@
+%                                                                      TITLE PAGE
+\begin{center}
+  {\Huge Mu2e Data Logging}
+  \vskip 0.1 cm
+
+  Rob Kutschke
+\vskip 0.1 cm
+Fermilab Scientific Computing Division
+
+\vskip 0.1 cm
+
+\IfStrEq{\ISDRAFT}{YES}{\large Working draft; git tag: \gitTag\\ }
+
+%
+\IfStrEq{\ISDRAFT}{NO}{\large  Mu2e-doc-\docdbVersion\\ }
+
+%
+  %  {\Large Mu2e-doc-\docdbVersion} \IfStrEq{\ISDRAFT}{YES}{, working draft\\ }
+
+\vskip 0.5 cm
+
+%git Tag: \gitTag
+
+\today
+
+\vskip 3.5 cm
+Abstract
+\end{center}
+\medskip
+
+The purpose of the Mu2e Data Logging system is to move data
+that is produced by the online system to long term storage offline;
+for most data the long term storae will be files on tape
+but for some data it may be offline databases.
+This document describes the background information
+that is needed to design the Mu2e Data Logging System.
+In particular it describes
+the many different files that will be produced by the online system.
+It describes technical constraints that must be obeyed by the system
+and lists questions that need to be answered during the design process.
+It also identifies which of the above information may change as the
+design of the online system evolves.
+\cleardoublepage
+
+%                                                   TABLE OF CONTENTS
+%\setcounter{page}{1}    % Removed this to get continuous numbering thru'out doc
+%\renewcommand{\thepage}{\roman{page}}
+\pagenumbering{roman}
+\pagestyle{plain}
+%  \setcounter{tocdepth}{3}
+
+% put in initial 1-level TOC 5/12/14
+\shorttoc{List of Chapters}{0}
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+%
+%\addtocontents{toc}{\protect{\pdfbookmark[0]{Table of Contents}{toc}}}
+% the above copied from lbne (chapter-frontmatter) 4/3/14 but added extra link on sidebar in acrobat
+\renewcommand*\contentsname{Detailed Table of Contents}
+\textsf{\tableofcontents}
+\cleardoublepage
+
+%                                                      TABLE OF FIGURES
+%\addcontentsline{toc}{chapter}{\listfigurename}
+\textsf{\listoffigures}
+% the above copied from lbne (chapter-frontmatter) 4/3/14
+%\cleardoublepage
+
+%                                                       TABLE OF TABLES
+%\addcontentsline{toc}{chapter}{\listtablename}
+% the above copied from lbne (chapter-frontmatter) 4/3/14
+\textsf{\listoftables}
+%\cleardoublepage
+
+
+%\renewcommand*\lstlistlistingname{List of Code and Output Listings}
+%\addcontentsline{toc}{chapter}{\lstlistlistingname}
+%\textsf{\lstlistoflistings}
+
+\cleardoublepage
+
+%                                                        GLOSSARY
+%\printnomenclature
+%\cleardoublepage
+
+%                                            DOCUMENT BODY... SET THE NUMBERING
+
+\cleardoublepage
+\renewcommand{\thepage}{\arabic{page}}
+
+% http://tex.stackexchange.com/questions/13387/how-to-get-part-name-in-latex
+\newcommand\partcontent{}
+
+\setcounter{page}{1}
+% LBNE's doesn't have the stuff below. Not sure where they set this stuff 4/13/14
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{%
+\markboth{Chapter \thechapter:\ #1}{}}
+\fancyhead{}
+\fancyhead[RO,LE]{\textsf{\footnotesize \thechapter--\thepage}}
+\fancyhead[LO,RE]{\textsf{\footnotesize \leftmark}}
+\fancyfoot{}
+\fancyfoot[RO]{\textsf{\footnotesize \art Documentation}}
+\fancyfoot[LE]{\textsf{\footnotesize \partcontent}}
+\fancypagestyle{plain}{}
+\renewcommand{\headrule}{\vspace{-4mm}\color[gray]{0.5}{\rule{\headwidth}{0.5pt}}}
+
+
+% Add contents of \label{} into the text to make setting up references easier.  (now done in art-draftconfig 4/3/14 AH)
+    %\let\Oldlabel\label
+    %\renewcommand{\label}[1]{\Oldlabel{#1} {\textbf{[LABEL: ``\url{#1}'']}} \\}
+
+% Turn on line numbers: (moved to art-draftconfig 4/3/14 AH)
+     %\linenumbers
+
+
+%\tableofcontents

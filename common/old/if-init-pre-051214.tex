@@ -1,0 +1,108 @@
+
+%                                                                      TITLE PAGE
+\begin{center}
+  {\Huge Intensity Frontier }
+\vskip 0.1 cm
+  {\Huge Common Offline Documentation: }
+\vskip 0.1 cm
+  {\Huge \art Workbook and Users Guide}
+\vskip 0.5 cm
+
+
+Alpha Release 0.60 working draft
+
+\today 
+
+\vskip 1.5 cm
+This version of the documentation is written for version \wbv of the art-workbook code.
+
+\vskip 1.5 cm
+\bigskip
+{\LARGE Scientific Computing Division}
+
+{\Large Future Programs and Experiments Department}
+
+{\large Scientific Software Infrastructure Group }
+
+\vskip 0.5 cm
+Principal Author: Rob Kutschke \\
+Editor: Anne Heavey
+\vskip 0.5 cm
+\art Developers: L. Garren, C. Green, \\
+J. Kowalkowski, M. Paterno and P. Russo
+\end{center}
+
+
+%                                                   ABSTRACT  (don't have one yet 4/3/14 AH)
+%\cleardoublepage
+%\pagestyle{empty}
+%\input{abstract}   
+%                                                   TABLE OF CONTENTS
+
+\cleardoublepage
+\setcounter{page}{1}
+\pagestyle{plain}
+\renewcommand{\thepage}{\roman{page}}
+% the above copied from lbne (chapter-frontmatter) 4/3/14
+
+% put in initial 1-level TOC 5/12/14
+\shorttoc{List of Chapters}{0}
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+%
+%\addtocontents{toc}{\protect{\pdfbookmark[0]{Table of Contents}{toc}}}
+% the above copied from lbne (chapter-frontmatter) 4/3/14 but added extra link on sidebar in acrobat
+\renewcommand*\contentsname{Detailed Table of Contents}
+\textsf{\tableofcontents}
+\cleardoublepage
+
+%                                                      TABLE OF FIGURES
+%\addcontentsline{toc}{chapter}{\listfigurename}
+\textsf{\listoffigures}
+% the above copied from lbne (chapter-frontmatter) 4/3/14
+%\cleardoublepage
+
+%                                                       TABLE OF TABLES
+%\addcontentsline{toc}{chapter}{\listtablename}
+% the above copied from lbne (chapter-frontmatter) 4/3/14
+\textsf{\listoftables}
+%\cleardoublepage
+
+%\textsf{\lstlistoflistings}
+\cleardoublepage
+
+%                                                        GLOSSARY
+\printnomenclature
+%\cleardoublepage
+
+%                                            DOCUMENT BODY... SET THE NUMBERING
+
+\cleardoublepage
+\renewcommand{\thepage}{\arabic{page}}
+\setcounter{page}{1}
+% LBNE's doesn't have the stuff below. Not sure where they set this stuff 4/13/14
+\pagestyle{fancy}
+\renewcommand{\chaptermark}[1]{%
+\markboth{Chapter \thechapter:\ #1}{}}
+\fancyhead{}
+\fancyhead[RO,LE]{\textsf{\footnotesize \thechapter--\thepage}}
+\fancyhead[LO,RE]{\textsf{\footnotesize \leftmark}}
+\fancyfoot{}
+\fancyfoot[RO]{\textsf{\footnotesize art Documentation}}
+\fancyfoot[LE]{\textsf{\footnotesize \partname}}
+\fancypagestyle{plain}{}
+\renewcommand{\headrule}{\vspace{-4mm}\color[gray]{0.5}{\rule{\headwidth}{0.5pt}}}
+
+
+% Add contents of \label{} into the text to make setting up references easier.  (now done in art-draftconfig 4/3/14 AH)
+    %\let\Oldlabel\label
+    %\renewcommand{\label}[1]{\Oldlabel{#1} {\textbf{[LABEL: ``\url{#1}'']}} \\}
+
+% Turn on line numbers: (moved to art-draftconfig 4/3/14 AH)
+     %\linenumbers
+
+
+%\tableofcontents
+
+
+

@@ -1,0 +1,39 @@
+% A.Heavey 4/21/14
+% Use to shade background of procedures in the art document
+
+\usepackage{framed}
+\definecolor{shadecolor}{HTML}{CEE8F0} % chged 9/1/14 for more earthy tones AH {E0FFFF}  % light cyan 
+
+% In file, surround content to be shaded with \begin{shaded} ... \end{shaded}
+% can also use shaded* (edge at margin), snugshade for tight fit, snugshade*, leftbar and others.  Set it here 
+
+            %\newcommand{\startproc}{\begin{shaded}}
+            %\newcommand{\stopproc}{\end{shaded}}
+
+% and use it throughout as
+    % \startproc
+    % (content)
+    % \stopproc 
+
+% Documentation at
+% http://bay.uchicago.edu/tex-archive/macros/latex/contrib/framed/framed.pdf
+% It can be made fancier.
+
+%%%%%%%%%  OTHER METHOD, LOOKS NICER  %%%%%%%%%%%%%
+
+\usepackage{wrapfig}
+\usepackage[skins,breakable]{tcolorbox} %--- OPTIONS
+\tcbset{
+    width=0.9\textwidth,
+    colframe=shadecolor!130,
+    colback=shadecolor!20!white,
+    enhanced,  
+    breakable, 
+    }
+    % and use it throughout as
+    % \begin{tcolorbox}
+    % (content)
+    % \end{tcolorbox} ....  nope, for now use the following:
+
+            \newcommand{\startproc}{\begin{center}\begin{tcolorbox}}
+            \newcommand{\stopproc}{\end{tcolorbox}\end{center}}

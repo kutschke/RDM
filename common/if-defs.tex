@@ -1,0 +1,213 @@
+% Mark any meta-comments, eg; \fixme{This section needs work.}
+%  4/1/14 art-workbook.cls now defines this \newcommand{\fixme}[1]{\textbf{FIXME:} \textit{#1}}
+%The following hides all fixmes in PDF (gotta turn off the \newcommand{\fixme} above)
+%\newcommand{\fixme}[1]{}
+
+%\newcommand{\future}[1]{\textbf{FUTURE:} \textit{#1}}
+%The following hides all futures (leaves text) in PDF (gotta turn off the \newcommand{\future} above)
+\newcommand{\future}[1]{ \textit{#1}}
+
+% The following command either just inserts or throws out its argument, depending on 
+% which definition is uncommented.
+%
+%\newcommand{\futuresection}[1]{ \textit{#1}}
+\newcommand{\futuresection}[1]{}
+
+% The name of Apple's operating system
+\newcommand{\osx}{OS~X\xspace}
+
+% Proper typesetting of C++.
+\newcommand{\cpp}{C\kern-0.15ex{+}\kern-0.1ex{+}\xspace}
+
+\newcommand{\be}{\begin{enumerate}}
+\newcommand{\ee}{\end{enumerate}}
+
+\newcommand{\bi}{\begin{itemize}}
+\newcommand{\ei}{\end{itemize}}
+
+\newcommand{\art}{\emph{art}\xspace} %needs package xspace
+\newcommand{\artdaq}{\emph{artdaq}\xspace} %needs package xspace
+\newcommand{\fcl}{FHiCL\xspace} 
+\newcommand{\larsoft}{LArSoft\xspace}
+
+% Version numbers that must be kept consistent.
+\newcommand{\docdbVersion}{xxxxx-vyy}  % Version number of this document
+\newcommand{\gitTag}{v0\_00\_00}       % Version number of this document
+%\newcommand{\cppTarVersion}{v0\_91} % Version number of the C++UpToSpeed.tar.gz file
+                                    % Usually the version number of the first version of the
+                                    % pdf file that requires this tar.gz file
+
+%\newcommand{\gccv}{v4\_9\_3\xspace} % GCC version number for toyExperiment packages
+%                                    % Remember to change this also in: GettingYourC++UpToSpeed/setup.sh 
+%\newcommand{\toyv}{v0\_00\_30\xspace\xspace}  % git version number of the toyExperiment package
+%\newcommand{\toyvClean}{v0\_00\_30}           % git version number of the toyExperiment package
+%                                              %   - need version with no xspace to embed in urls.
+%\newcommand{\wbv}{v0\_00\_39\xspace\xspace} % git version number of the art-workbook package
+%                                                   %   - an accident if it is the same as the toyExperiment package!
+%\newcommand{\downloadQuals}{s30-e9}           % Recommended qualifier set if you are downloading your own binaries.
+%\newcommand{\setupQuals}{s30:e9}              % Same info needed in a different format in some places.
+%\newcommand{\rootv}{v5.34/32\xspace}          % version of root used by the workbook
+%\newcommand{\rooturl}{http://root.cern.ch/root/html534}  % url to version dependent root documentation.
+
+\newcommand{\ddash}{-{}-} % Two consecutive dashes, not an endash.  Needed for option prefixes on unix commands.
+
+% Keywords used by pullProducts for OSX releases.
+% Check userguide/if-ug-installing-locally.tex for correctness
+%
+\newcommand{\mavericksKey}{d13}
+\newcommand{\yosemiteKey}{d14}
+
+\newcommand{\ingloss}[1]{\textit{#1}($\gamma$)\xspace}  
+
+\newcommand{\cetbuildtools}{{\textbf{cetbuildtools}}\xspace} %needs package xspace
+\newcommand{\fhiclcpp}{{\textbf{fhiclcpp}}\xspace} %needs package xspace
+
+\newcommand{\fclstyle}{\color{blue}\begin{verbatim}} %AH adds 4/25/13  This works
+\newcommand{\normstyle}{\end{verbatim}\color{black}} %AH adds 4/25/13  This doesn't work. Why not?
+
+%\newcommand{\cmd}[1]{\texttt{\bf #1}}  %AH adds 6/12 per Brett 
+\newcommand{\cmd}[1]{\colorbox{shadecolor}{\textsf{#1}}\xspace }  %% was   yellow!10
+\newcommand{\cmdp}[1]{\colorbox{shadecolor}{\textsf{#1}}\xspace } % use for command inside a procedure box
+
+
+\newcommand{\file}{\tt}  %AH adds 4/21/14 for filenames, file extensions and directory paths
+\newcommand{\unix}{\sf}  %AH adds 4/21/14 for inline unix commands 
+\newcommand{\utype}{\sf\textsl}  %AH adds for text user must substitute in commands
+      % use like this:  \cmd{normal command \utype{myfilename}}
+\newcommand{\out}{\tt}  %AH adds 5/7/14 for command output
+\newcommand{\class}{\tt}  %AH adds 4/21/14 for C++ classes
+\newcommand{\idfier}{\tt}  %AH adds 4/21/14 for identifiers in fcl and/or C++ programs
+\newcommand{\cppfcl}{\tt}  %AH adds 4/21/14 for CONTENT in C++ or fcl programs (functions, statements variables, arguments, values, everything but CLASSES and IDENTIFIERS)
+\newcommand{\srvc}{\tt}  % what did I want this for?
+
+% To typeset marginpar symbols for a left hand page, you need to
+%  a) Right justify it within the marginpar box
+%  b) In line numbers are turned on, then we need to not quite 
+%     right justify, so that it leaves room for the line numbers.
+%
+
+% marginpar takes two args: \marginpar[left stuff]{right stuff} left is even, right is odd page.
+\newcommand{\danger}{
+\marginpar[{\hfill
+\includegraphics[scale=0.25]{figures/KnuthDBend.png}\hspace{4 pt}
+}]{
+\includegraphics[scale=0.25]{figures/KnuthDBend.png}
+}}  %AH adds 4/25/13  This works
+
+\newcommand{\notabene}{
+\marginpar[{\hfill % don't remove this; it affects invisible background   %\marginnote[{\hfill
+\includegraphics[scale=0.5]{figures/pointc-right.png}   %\hspace{5 pt}
+}]{
+\includegraphics[scale=0.5]{figures/pointc-left.png}
+}}  %AH adds 4/25/13  This works
+
+\newcommand{\notice}{
+\marginpar[{\hfill
+\includegraphics[scale=0.5]{figures/notice.png}\hspace{8 pt}
+}]{
+\includegraphics[scale=0.5]{figures/notice.png}
+}}  %AH adds 5/6/13  
+
+\newcommand{\nonfermi}{
+\marginpar[{\hfill
+\includegraphics[scale=.3]{figures/ivy-univ.png}\hspace{8 pt}
+}]{
+\includegraphics[scale=.3]{figures/ivy-univ.png}
+}}  %AH adds 5/8/13
+
+
+\newcommand{\fermi}{
+\marginpar[{\hfill
+\includegraphics[scale=.3]{figures/wilsonflags.png}\hspace{8 pt}
+}]{
+\includegraphics[scale=.3]{figures/wilsonflags.png}
+}}  %AH adds 5/8/13  
+
+\newcommand{\logomutoe}{
+\marginpar[{\hfill
+\includegraphics[scale=.35]{figures/mu2e_logo_oval_100_58.png}\hspace{8 pt}
+}]{
+\includegraphics[scale=.35]{figures/mu2e_logo_oval_100_58.png}
+}}  %AH adds 5/8/13  
+
+\newcommand{\logonova}{
+\marginpar[{\hfill
+\includegraphics[scale=.3]{figures/nova.png}\hspace{8 pt}
+}]{
+\includegraphics[scale=.3]{figures/nova.png}
+}}  %AH adds 9/3/14  
+
+\newcommand{\bomb}{
+\marginpar[{\hfill
+\includegraphics[scale=.4]{figures/bomb.png}\hspace{3 pt}
+}]{
+\includegraphics[scale=.4]{figures/bomb.png}
+}}  %AH adds 5/14/13 
+
+\newcommand{\gammapic}{
+\marginpar[{\hfill
+\includegraphics[scale=.4]{figures/gammapic.png}\hspace{3 pt}
+}]{
+\includegraphics[scale=.4]{figures/gammapic.png}
+}}  %AH adds 4/4/14 
+
+
+\def\Reco{{\tt Reco\ }}
+\def\RecoTrack{{\tt RecoTrack}}
+\def\RecoFit{{\tt RecoFit}}
+\def\RecoHelix{{\tt RecoHelix}}
+
+\def\RecoTrackInfo{{\tt RecoTrackInfo}}
+\def\RecoFitInfo{{\tt RecoFitInfo}}
+\def\RecoHelixInfo{{\tt RecoHelixInfo}}
+\def\RecoFitType{{\tt RecoFitType}}
+
+\def\RecoFitInfoCollection{{\tt RecoFitInfoCollection}}
+
+\def\RecoHit{{\tt RecoHit}}
+\def\RecoHitInfo{{\tt RecoHitInfo}}
+\def\RecoHitCollection{{\tt RecoHitCollection}}
+
+\def\RecoTrackManager{{\tt RecoTrackManager}}
+\def\LocationCode{{\tt LocationCode}}
+
+                                             %%%%%%%   DEFAULT LISTSET   %%%%%%%
+\lstset{
+                  float,
+                  basicstyle=\footnotesize\ttfamily,
+                  breaklines=false,
+                  language=C++,
+                  frame=none,
+                  backgroundcolor=\color{tikz-bkgd-color},
+                  numbers=left
+}
+                                            %%%%%%%   LISTING STYLES   %%%%%%%
+                                            
+%\lstloadlanguages{C++}  TEST IF THIS IS NEEDED
+%\definecolor{outputcolor}{HTML}{E0FEE0}
+\lstdefinestyle{output}{
+                  basicstyle=\footnotesize\ttfamily,
+                  breaklines=false,
+                  frame=none,
+                  backgroundcolor=\color{shadecolor!50},
+                  numbers=none
+}
+
+%\definecolor{fclcolor}{HTML}{E6CCCC}% try   E0C2C2   CCE0CC E6F0E6
+\definecolor{fclcolor}{HTML}{E6F0E6}\lstdefinestyle{fcl}{
+                  basicstyle=\footnotesize\ttfamily,
+                  breaklines=false,
+                  frame=none,
+                  backgroundcolor=\color{fclcolor},
+                  numbers=left
+}                                                                                     
+                                                                                        
+\definecolor{scriptcolor}{HTML}{ECE3DA}   
+\lstdefinestyle{script}{
+                  basicstyle=\footnotesize\ttfamily,
+                  breaklines=false,
+                  frame=none,
+                  backgroundcolor=\color{scriptcolor},
+                  numbers=left
+}                                                                                     
+                                                                                                                                                                                
