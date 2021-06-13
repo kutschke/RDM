@@ -1,0 +1,41 @@
+% Title page.
+%
+\begin{center}
+  {\Huge Mu2e Data Logging}
+  \vskip 0.1 cm
+
+  Rob Kutschke
+\vskip 0.1 cm
+Fermilab Scientific Computing Division
+
+\vskip 0.1 cm
+
+\IfStrEq{\ISDRAFT}{YES}{\large Working draft; git tag: \gitTag\\ }
+
+%
+\IfStrEq{\ISDRAFT}{NO}{\large  Mu2e-doc-\docdbVersion\\ }
+
+%
+
+\vskip 0.5 cm
+
+\today
+
+\vskip 3.5 cm
+Abstract
+\end{center}
+\medskip
+
+The purpose of the Mu2e Data Logging system is to move data
+that is produced by the online system to long term storage offline;
+for most data the long term storae will be files on tape
+but for some data it may be offline databases.
+This document describes the background information
+that is needed to design the Mu2e Data Logging System.
+In particular it describes
+the many different files that will be produced by the online system.
+It describes technical constraints that must be obeyed by the system
+and lists questions that need to be answered during the design process.
+It also identifies which of the above information may change as the
+design of the online system evolves.
+\cleardoublepage
