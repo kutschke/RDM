@@ -5,11 +5,11 @@
 #
 all: draft
 
-draft:  draft.tex
-	latexmk -g --pdf --output-directory=draft-dir draft.tex
+draft:
+	latexmk  --pdf --output-directory=draft-dir draft.tex
 
-print:  print.tex
-	latexmk -g --pdf --output-directory=print-dir print.tex
+print:
+	latexmk  --pdf --output-directory=print-dir print.tex
 
 # Clean up all generated files including .pdf
 clean:
