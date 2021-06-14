@@ -14,14 +14,29 @@ LaTeX source for a writeup that describes the background information needed to d
 | titlepage.tex    | Source for the title page
 
 To build the draft or print versions:
-> make draft
+<pre>
+make draft
+make print
+</pre>
 
-or
-> make print
+This uses latexmk to run pdflatex, bibtex and other programs in the correct order
+and the correct number of times.
+It is configured to put it's output in:
+<pre>
+draft-dir/draft.pdf
+print-dir/print.pdf
+</pre>
+All auxillary files are stored in the same directory as the pdf.
+Note that latexmk does the dependency determination and decides
+which steps need to be (re-)run.
 
-Note that latexmk determines what steps need to be re-run, not make itself.
+
 To remove all auxillary files, leaving only the pdf:
-> make publish
+<pre>
+make publish
+</pre>
 
 To remove all files created by LaTex, including the pdf:
-> make clean
+<pre>
+make clean
+</pre>
