@@ -21,14 +21,15 @@ make print
 
 This uses latexmk to run pdflatex, bibtex and other programs in the correct order
 and the correct number of times.
-It is configured to put it's output in:
+It is configured to put its output in:
 <pre>
 draft-dir/draft.pdf
 print-dir/print.pdf
 </pre>
-All auxillary files are stored in the same directory as the pdf.
+All auxillary files are written to the same directory as the pdf.
 Note that latexmk does the dependency determination and decides
-which steps need to be (re-)run.
+which steps need to be (re-)run;
+this is not done by make.
 
 
 To remove all auxillary files, leaving only the pdf:
@@ -40,3 +41,6 @@ To remove all files created by LaTex, including the pdf:
 <pre>
 make clean
 </pre>
+
+This also builds with TexShop but you need to rerun the appropriate number of times by hand.
+
