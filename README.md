@@ -15,6 +15,7 @@ LaTeX source for a writeup that describes the background information needed to d
 
 To build the draft or print versions:
 > make draft
+
 or
 > make print
 
