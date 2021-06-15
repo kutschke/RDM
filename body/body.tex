@@ -1,13 +1,35 @@
-%Gloss
-%\input{if-glossary} % this isn't working 4/13/14
+\chapter{Introduction}
 
-%Abst
-%\input{workbook1/if-wkbk-abstract}  Worry about this later... (AH)
+\label{ch:intro}
 
-\chapter{How to Read this Documentation}
-\label{ch:how-to-read}
+The Mu2e Data Logging System (DLS) is an element of Mu2e Data Processing
+and Computing (DPC), an L2 project within Mu2e Experiment Operations Plan.
+\fixme{cite the EOP}
+Its purpose is to move data
+that is produced by the online system to long term storage;
+for most data, the long term storage will be files on tape
+but, for some data, it will be in one of the offline databases.
+Some data may also transiently reside in disk files so that
+it is readily avaialble for the follow-on data processing steps.
 
-This is the introduction
+Other functions of the DLS include:
+\begin{enumerate}
+\item Updating the file catalog to reflect file creation and movement.
+\item Manage the free space in the online disk buffer that is filled by the online system and drained by DLS.
+\item Copy/mirror subsets of the online databases to the offline databases
+\end{enumerate}
+
+At this writing it is expected that the offline data processing workflows will be driven by updates to the file catalog;
+so the DPS does not need other hooks into that workflow.
+
+The operation and maintenance of the network between the Mu2e Hall and the computer centers
+\footnote{
+In this document the work ``computer centers'' is used as a collective noun for the Feynman Computing Center (FCC)
+and the Grid Computing Center (GCC).
+}
+is the responsibility of the Fermilab Core Computing Division (CCD).
+The DPS has the responsibility to be the interface between Mu2e and CCD regarding this network.
+Details of this responsbility are in Section~\fixme{reference the appropriate section}.
 
 \section{If you are new to HEP Software...}
 
