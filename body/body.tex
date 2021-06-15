@@ -2,38 +2,43 @@
 
 \label{ch:intro}
 
-The Mu2e Data Logging System (DLS) is an element of Mu2e Data Processing
+The Mu2e Raw Data Mover (RDM) System is an element of Mu2e Data Processing
 and Computing (DPC), an L2 project within Mu2e Experiment Operations Plan.
 \fixme{cite the EOP}
 Its purpose is to move data
 that is produced by the online system to long term storage;
 for most data, the long term storage will be files on tape
 but, for some data, it will be in one of the offline databases.
-Some data may also transiently reside in disk files so that
+Some data may also reside transiently in disk files so that
 it is readily avaialble for the follow-on data processing steps.
 
-Other functions of the DLS include:
+Other functions of the RDM include:
 \begin{enumerate}
-\item Updating the file catalog to reflect file creation and movement.
-\item Manage the free space in the online disk buffer that is filled by the online system and drained by DLS.
+\item Updating the file catalog to include meta-data and file location(s).
+\item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream processing.
+\item Managing the free space in the online disk buffer
 \item Copy/mirror subsets of the online databases to the offline databases
 \end{enumerate}
 
-At this writing it is expected that the offline data processing workflows will be driven by updates to the file catalog;
-so the DPS does not need other hooks into that workflow.
+It is expected that the offline data processing workflows will be driven by updates to the file catalog;
+so the RDM does not need other hooks into those workflows.
 
-The operation and maintenance of the network between the Mu2e Hall and the computer centers
-\footnote{
-In this document the work ``computer centers'' is used as a collective noun for the Feynman Computing Center (FCC)
-and the Grid Computing Center (GCC).
-}
+The operation and maintenance of the network between the Mu2e Hall and the computer center
 is the responsibility of the Fermilab Core Computing Division (CCD).
 The DPS has the responsibility to be the interface between Mu2e and CCD regarding this network.
 Details of this responsbility are in Section~\fixme{reference the appropriate section}.
 
-\section{If you are new to HEP Software...}
+In early planning for the Mu2e DPC, what is now called the RMD was called the Data Logging System.
+However that name is too class to two related concepts in the online world:
+the {\tt artdaq} DataLogger processes that run on the Data Logger nodes at the end of the TDAQ
+processing change.  The name was changed to RDM to avoid confusion.
 
-Section 1 of chapter 1
+\section{Conventions Used in this Document}
+
+In this document the word ``computer center'' is used as a collective noun for the
+Feynman Computing Center (FCC) and the Grid Computing Center (GCC).
+When it is important to distinguish the two, one of the two will be named explicitly.
+
 
 
 \section{If you are an HEP Software expert...}
