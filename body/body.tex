@@ -3,8 +3,7 @@
 \label{ch:intro}
 
 The Mu2e Raw Data Mover (RDM) System is an element of Mu2e Data Processing
-and Computing (DPC), an L2 project within Mu2e Experiment Operations Plan.
-\fixme{cite the EOP}
+and Computing (DPC)~\cite{DPC}, an L2 project within Mu2e Experiment Operations Plan~\cite{PEOP}.
 Its purpose is to move data
 that is produced by the online system to long term storage;
 for most data, the long term storage will be files on tape
@@ -92,21 +91,22 @@ see Appendix~\ref{app:RouterAndNetwork} for details.
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/interface_with_TDAQ.pdf}
-\caption{Block diagram of the major elements of which the Mu2e RDM must be
-  aware. Not shown are \fixme{not shown}.  See the text for a discussion of these elements.}
+\caption[Block diagram of interfaces seen by the Mu2e RDM]{
+  Block diagram of the interfaces seen by the Mu2e RDM.
+  Not shown are \fixme{not shown}.  See the text for a discussion of these elements.}
 \label{fig:blockdiagram}
 \end{figure}
 
 Data flows from the detectors, through the DAQ system into the TDAQ computer farm.
-The detectors are the Tracker (Trk), Calorimeter (Cal), the Cosmic Ray Veto system (CRV),
+The five approved detectors are the Tracker (Trk), Calorimeter (Cal), the Cosmic Ray Veto system (CRV),
 the Muon Stopping Target Monitor (MSTM) and the downstream Extintion Monitor (ExtMon).
-A sixth detector has been proposed, the Production Target Scanning Monitor (PTSM), which is
-drawn with a dotted box because it is not yet funded; moreover it's primary use it to send
-rapid feedback to the accelerator control room and it's not clear if it will send data
-via the TDAQ system.
+A sixth detector has been proposed, the Production Target Scanning Monitor (PTSM),
+which is drawn with a dotted box;
+moreover it's primary use is to send rapid feedback to the accelerator control room
+and it's not clear if it will send data via the TDAQ system.
 
-A cartoon picture of the farm is that it contains about 40 DAQ Server nodes
-that talk to the DAQ system, build events and run trigger algorithms on those events.
+A cartoon picture of the TDAQ computer farm is that it contains about 40 DAQ Server nodes
+that talk to the detectors via the  DAQ system, build events and run trigger algorithms on those events.
 Events that pass the trigger are forwarded to a Data Logger node that will write the events
 to files in the ``Data Logger Local Storage'', a RAID 0 disk array on the bus of the Data Logger node.
 Appendix~\ref{app:DataLoggerLocalStorage} has the specs for and a discussion about this disk array.
@@ -135,7 +135,7 @@ to move these files to long term storage.
 All of the computing resources in the TDAQ farm are on a private subnet
 and cannot been seen from the lab network.  Access in and out
 of the private subnet will be via a gateway node that is connected to
-both private subnet and the lab network.  The gateway node is the responsibility
+both the private subnet and the lab network.  The gateway node is the responsibility
 of the TDAQ group.
 
 When the Mu2e Hall was built and provisioned, CCD personnel installed a dual router
@@ -151,11 +151,48 @@ which has a lab-wide arrangement with the router vendor.
 The specs of this router and additional details of Mu2e's arrangement with CCD
 can be found in Appendix~\ref{app:RouterAndNetwork}.
 
-Over the next few years Mu2e expects that the disk and tape services provided
-by SCD will be dCache and ENSTORE.  At this writing Mu2e is using SAM as a file
-catalog system.  One of the questions to ask in the design of the RDM is whether
-to continue with SAM or to change to a more modern system RUCIO, which SCD
-has identified as its future direction.
+For the foreseeable future Mu2e expects that the disk and tape services provided
+by SCD will be dCache and ENSTORE.
+At this writing Mu2e is using SAM as the file catalog system for files produced
+by simulations, tests stands and Vertical Slice Tests (VST).
+SCD plans to phase out SAM and replace it with a more modern system, RUCIO \fixme{reference};
+RUCIO is already in use by CMS and by DUNE for Proto-DUNE single phase data.
+It is likely that SAM will be phased out during the lifetime of Mu2e.
+One of the questions to ask in the design of the RDM is
+when to make the transition to RUCIO.
+
+\section{On-Spill, Off-Spill and Near-Spill}
+
+This section defines the concepts of on-spill, off-spill and near-spill running.
+
+It is expected that, for most of it's running time, Mu2e will share parts
+of the Fermilab accelerator complex with, first, NOvA and, later, DUNE.
+This drives the basic cycle of Mu2e DAQ, a Main Injector (MI) cycle of
+21 Booster (BO) cycles; the duration of one Booster cycle is 1/15 s.
+It's possible that the MI cycle might be 20 or 22 BO cycles, that does
+not materially change the requirements for the RDM.
+While Mu2e plans to start operations with a lower intensity configuration,
+it is the full intensity configuration that drives the RDM requirements and that
+is what will be described here.  Table~\ref{tab:timescales} summarizes the
+time scales within one MI cycle.
+
+See~\cite{beamTiming}. 
+
+\begin{table}
+\begin{center}
+\caption[Time scales within the Mu2e MI Cycle]{Time scales within the Mu2e MI Cycle}
+\label{tab:timescales}
+\begin{tabular}{ll}\hline
+   1/15 s & Period of one Booster cycle \\
+   21     & Booster cycles within the MI cycle \\
+   1.4 s  & Period of one MI cycle \\
+   0.93 s & Duration of the Off-spill period within one MI cycle \\
+  1695 ns & Period of the Delivery Ring \\
+  \end{tabular}
+\end{center}
+\end{table}
+
+
 
 \chapter{The Next Chapter}
 \label{ch:next_chapter}
@@ -222,19 +259,7 @@ This appendix has information about subruns
 
 \section{If you are new to HEP Software...}
 
-Section 1 of the appendix on subruns that refers to Table~\ref{tab:clhep:functions}.
-\begin{table}
-\begin{center}
-\caption[Selected member functions of {\tt CLHEP::Hep3Vector}]{Selected member functions of {\tt CLHEP::Hep3Vector}.}
-\label{tab:clhep:functions}
-\begin{tabular}{lll}\hline
-  {\cppfcl a = u.cosTheta();}  & {\cppfcl double cosTheta() const;} & $\cos\theta$\\
-  {\cppfcl a = u.cos2Theta();} & {\cppfcl double cos2Theta() const;} & $\cos^2\theta$\\
-  {\cppfcl v = u.unit();}      & {\cppfcl Hep3Vector unit() const;} & A unit vector in the direction of {\cppfcl u} \\ \hline
-  \end{tabular}
-\end{center}
-\end{table}
-
+Section 1 of the appendix on subruns.
 
 \section{If you are an HEP Software expert...}
 
@@ -276,6 +301,19 @@ Section 1 of the appendix on subruns.
 
 Section 2 of the appendix on subruns.
 
-\cleardoublepage
-\printindex
+
+\clearpage
+%\printbibliography
+\begin{thebibliography}{Mu2e-doc-12345-v12}
+\bibitem[Mu2e-doc-22960-v3]{DPC}Mu2e Data Processing Operational Requirements, Robert K. Kutschke, April 8, 2020.
+   \href{https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=22960\&version=3}{https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=22960\&version=3}
+\bibitem[Mu2e-doc-31439-v5]{PEOP}Mu2e Preliminary Experiment Operations Plan, Greg Rakness, May 1, 2020.
+  \href{https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=31439\&version=5}{https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=31439\&version=5}
+\bibitem[Mu2e-doc-23380-v3]{beamTiming} Mu2e Proton Beam Longitudinal Structure, Steven J. Werkema, Feb 6, 2019.
+  \href{https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=23380\&version=2}{https://mu2e-docdb.fnal.gov/cgi-bin/sso/ShowDocument?docid=23380\&version=2}
+\end{thebibliography}
+
+
+%\cleardoublepage
+%\printindex
 
