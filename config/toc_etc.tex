@@ -3,52 +3,32 @@
 %   - Table of Contents to level 4
 %   - List of Figures
 %   - List of Tables
-%   - Commented out: glossary, index ...
 % Setup page numbering etc for the start of the body
 %
 %
 %                                                   TABLE OF CONTENTS
 \pagenumbering{roman}
 \pagestyle{plain}
-%  \setcounter{tocdepth}{3}
 
-% put in initial 1-level TOC 5/12/14
+% Initial 1-level TOC
 \shorttoc{List of Chapters}{0}
 \setcounter{tocdepth}{4}
 \setcounter{secnumdepth}{4}
-%
-%\addtocontents{toc}{\protect{\pdfbookmark[0]{Table of Contents}{toc}}}
-% the above copied from lbne (chapter-frontmatter) 4/3/14 but added extra link on sidebar in acrobat
+
+% Repeat TOC, this time to level 4.
 \renewcommand*\contentsname{Detailed Table of Contents}
 \textsf{\tableofcontents}
-\cleardoublepage
 
-%                                                      TABLE OF FIGURES
-%\addcontentsline{toc}{chapter}{\listfigurename}
+% TABLE OF FIGURES
 \textsf{\listoffigures}
-% the above copied from lbne (chapter-frontmatter) 4/3/14
-%\cleardoublepage
 
-%                                                       TABLE OF TABLES
-%\addcontentsline{toc}{chapter}{\listtablename}
-% the above copied from lbne (chapter-frontmatter) 4/3/14
+% TABLE OF TABLES
 \textsf{\listoftables}
-%\cleardoublepage
 
-
-%\renewcommand*\lstlistlistingname{List of Code and Output Listings}
-%\addcontentsline{toc}{chapter}{\lstlistlistingname}
-%\textsf{\lstlistoflistings}
-
-\cleardoublepage
-
-%                                                        GLOSSARY
-%\printnomenclature
-%\cleardoublepage
 
 %                                            DOCUMENT BODY... SET THE NUMBERING
 
-\cleardoublepage
+\clearpage
 \renewcommand{\thepage}{\arabic{page}}
 
 % http://tex.stackexchange.com/questions/13387/how-to-get-part-name-in-latex
@@ -67,14 +47,3 @@
 \fancyfoot[LE]{\textsf{\footnotesize \partcontent}}
 \fancypagestyle{plain}{}
 \renewcommand{\headrule}{\vspace{-4mm}\color[gray]{0.5}{\rule{\headwidth}{0.5pt}}}
-
-
-% Add contents of \label{} into the text to make setting up references easier.  (now done in art-draftconfig 4/3/14 AH)
-    %\let\Oldlabel\label
-    %\renewcommand{\label}[1]{\Oldlabel{#1} {\textbf{[LABEL: ``\url{#1}'']}} \\}
-
-% Turn on line numbers: (moved to art-draftconfig 4/3/14 AH)
-     %\linenumbers
-
-
-%\tableofcontents
