@@ -4,7 +4,6 @@
 % for \url, \href and clickable sections
 
 \usepackage[pdftex,bookmarks]{hyperref}
-%\usepackage[bookmarks]{hyperref}   % html conv not working; try without pdftex option
 
 \hypersetup{
     pdftitle={The \art Workbook},
@@ -17,41 +16,13 @@
     urlbordercolor=magenta,
     filecolor=black,
     pdfpagemode=UseOutlines,
-    pdfborderstyle={/S/U},  
+    pdfborderstyle={/S/U},
     breaklinks=true,
 }
-% Have to specifically use the backref package to control settings
-% 
-\usepackage[hyperref]{backref}
-% How citations are shown
-% Change default for how citations are displayed
-% backrefxxx takes 3 arguments 1: page number 2: section number 3: label
-%\renewcommand{\backrefxxx}[3]{Sec. \hyperlink{#3}{#2}-pg. \hyperlink{page.#1}{#1}}
 
-\renewcommand{\backrefxxx}[3]{~\hyperlink{page.#1}{#2~(pg.#1)}}
 
-% Use to control how multiple citations are displayed
-%backrefalt takes four arguments:
-%1  Number of citations without dupes.
-%2  Back references list without dupes.
-%3  Number of all citations (with dupes).
-%4  Back reference list with all entries (with dupes).
-
-\renewcommand*{\backref}[1]{}
-\renewcommand*{\backrefalt}[4]{%
-  \ifcase #1 %
-    \relax  
-%    No citations.% use \relax if you do not want the "No citations" message
-  \or
-    Cited in Section~#2.%
-  \else
-    Cited in Sections~#2.%
-  \fi%
-}
-%
-% Screws up section numbers when referenced in figure or table only
-%
-\AtBeginEnvironment{figure}{\backrefsetup{disable}}
-\AtBeginEnvironment{table}{\backrefsetup{disable}}
-\AtBeginEnvironment{footnote}{\backrefsetup{disable}}
+% The art-workbook-doc used backref, which adds markup in the
+% references section to indicate where each reference was cited.
+% That is inconsistent with using biblatex and has been removed
+\usepackage[hyperref]{}
 
