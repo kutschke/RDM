@@ -1,4 +1,4 @@
-%\documentclass[twoside,openright]{report} %This class automatically uses \chapter and \section 
+%\documentclass[twoside,openright]{report} %This class automatically uses \chapter and \section
 % changed by AH 3/31/14
 %\documentclass{art-workbook}    Now done in art-doc-draft
 
@@ -20,10 +20,13 @@
 %\usepackage{listings}
 \usepackage{styles/cpplistings}
 \usepackage{tocbibind}
+%\usepackage[backend=biber,style=alphabetic,sorting=ynt]{biblatex}
+\usepackage{biblatex}
+\addbibresource{references.bib}
 \usepackage{fancyhdr}
 \usepackage{titlesec}
-\usepackage{makeidx} 
-%\usepackage{showidx}  % Use only when proofreading; this shows in the right margin. 
+\usepackage{makeidx}
+%\usepackage{showidx}  % Use only when proofreading; this shows in the right margin.
 % new below \usepackage{hyperref} %create hyperlinks; use with \href{<my_url>}{<description>} or \url{<my_url>}
 \usepackage{textpos} %put graphics in margins
 
@@ -31,7 +34,7 @@
 \usepackage[marginparsep=.2cm, marginparwidth=2cm]{geometry}
 
 \usepackage{xspace}
-\usepackage[inline]{styles/TrackChanges} 
+\usepackage[inline]{styles/TrackChanges}
 \usepackage{manfnt}
 \usepackage{chappg}
 \usepackage{amsmath}
@@ -39,7 +42,7 @@
 \addeditor{anne}
 \addeditor{rob}
 \usepackage{alltt} %AH added 6/12/13 - like verbatim but can use commands inside
-\usepackage{courier}  % AH added 6/17/13 
+\usepackage{courier}  % AH added 6/17/13
 \input{config/procedure-format}
 % see init.tex for use of these to produce draft behavior (linenumbers)
 \usepackage[pagewise]{lineno}
@@ -73,9 +76,9 @@
 
 
 % I think this adds entry for bibliog to TOC
-% \usepackage{tocbibind}
-%%Rename bibliography to References 
-%\renewcommand\bibname{References}
+\usepackage{tocbibind}
+%Rename bibliography to References
+\renewcommand\bibname{References}
 
 
 % Can provide command specifics, e.g.,
