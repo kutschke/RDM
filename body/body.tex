@@ -50,7 +50,7 @@ as described in Appendix~\ref{app:RouterAndNetwork}.
 
 In early planning for the Mu2e DPC, what is now called the RDM was called the Data Logging System.
 However that name is too close to two related concepts in the online world:
-the {\tt artdaq} DataLogger processes that run on the Data Logger nodes at the end of the TDAQ
+the {\code artdaq::DataLogger} processes that run on the Data Logger nodes at the end of the TDAQ
 processing chain.  The name was changed to RDM to avoid confusion with these other uses of Data Logger.
 
 \section{Conventions Used in this Document}
@@ -103,10 +103,17 @@ the Muon Stopping Target Monitor (MSTM) and the downstream Extintion Monitor (Ex
 A sixth detector has been proposed, the Production Target Scanning Monitor (PTSM),
 which is drawn with a dotted box;
 moreover it's primary use is to send rapid feedback to the accelerator control room
-and it's not clear if it will send data via the TDAQ system.
+and it's not clear what, if any, data it will send through the TDAQ system.
+In any event the data volume from that PTSM will be small enough that it will not be
+a driver for the RDM.
 
-A cartoon picture of the TDAQ computer farm is that it contains about 40 DAQ Server nodes
-that talk to the detectors via the  DAQ system, build events and run trigger algorithms on those events.
+A cartoon picture of the TDAQ computer farm is that it has 40 DAQ Server nodes
+that talk to the detectors, build events and run trigger algorithms on those events.
+The design is a deadtimeless streaming DAQ system that has no hardware trigger;
+it reads every event from the detector hardware and sends all events to software filters
+that run on the DAQ server nodes;
+the software makes the trigger decision.
+The present design is 20 software filter processes on each of the 40 DAQ server nodes, 800 total.
 Events that pass the trigger are forwarded to a Data Logger node that will write the events
 to files in the ``Data Logger Local Storage'', a RAID 0 disk array on the bus of the Data Logger node.
 Appendix~\ref{app:DataLoggerLocalStorage} has the specs for and a discussion about this disk array.
@@ -165,74 +172,173 @@ when to make the transition to RUCIO.
 
 This section defines the concepts of on-spill, off-spill and near-spill running.
 
-It is expected that, for most of it's running time, Mu2e will share parts
-of the Fermilab accelerator complex with, first, NOvA and, later, DUNE.
-This drives the basic cycle of Mu2e DAQ, a Main Injector (MI) cycle of
-21 Booster (BO) cycles; the duration of one Booster cycle is 1/15 s.
-It's possible that the MI cycle might be 20 or 22 BO cycles, that does
-not materially change the requirements for the RDM.
-While Mu2e plans to start operations with a lower intensity configuration,
-it is the full intensity configuration that drives the RDM requirements and that
-is what will be described here.  Table~\ref{tab:timescales} summarizes the
-time scales within one MI cycle.
+It is expected that, for most of it's running time,
+Mu2e will share parts of the Fermilab accelerator complex with a neutrino experiment,
+first, with NOvA and, later, with DUNE.
+To keep this document easier to read it will discuss sharing with NOvA but sharing with DUNE is implied.
+The change from NOvA to DUNE will not materially change the requirements of the RDM.
 
-See~\cite{beamTiming}. 
+Sharing with NOvA drives the repeating cycle of Mu2e operations, a Main Injector (MI) cycle of
+21 Booster (BO) cycles;
+the duration of one Booster cycle is 1/15~s,
+making the duration of one MI cycle 1.4~s.
+Figure~\ref{fig:beamMacroStructure} shows a cartoon of the MI cycle.
+From the Mu2e point of view, the MI cycle starts with a series of 8 spills;
+within each spill, proton pulses arrive at Mu2e every 1695~ns;
+the duration of a spill is about 43.1~ms, or about 25,500 pulses.
+There is a gap of about 5~ms between spills.
+The eigth spill is followed by a period of about 1020~ms,
+during which no proton pulses arrive at Mu2e;
+during this time, beam is delivered to NOvA
+and beam is prepared for the next 8 spills to Mu2e.
+Then the cycle repeats.
 
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/ProtonBeamLongitudinalStructure2019-01-10_page6.pdf}
+\caption[MacroStructure of the Proton Beam at Mu2e]{
+  MacroStructure of the proton beam at Mu2e, taken from page~6 of
+  the file ``Proton Beam Longitudinal Structure (.pdf)'' from
+  Reference~\protect{\cite{beamTiming}}.  The figure is described in the text.}
+\label{fig:beamMacroStructure}
+\end{figure}
+
+During the spills, Mu2e is running in the on-spill configuration.
+During the 1020~ms no-beam period, Mu2e is running in the off-spill configuration.
+These two configurations are discussed below.
+It has not yet been decided if the 5~ms periods between spills will
+be in the on-spill or off-spill configuration
+but that does not materially affect the design of the RDM.
+Table~\ref{tab:timescales} summarizes the time scales within one MI cycle.
 \begin{table}
 \begin{center}
-\caption[Time scales within the Mu2e MI Cycle]{Time scales within the Mu2e MI Cycle}
+\caption[Numerology of the Mu2e MI Cycle]{Numerology of the Mu2e MI Cycle.}
 \label{tab:timescales}
 \begin{tabular}{ll}\hline
-   1/15 s & Period of one Booster cycle \\
+   1/15~s & Period of one Booster cycle \\
    21     & Booster cycles within the MI cycle \\
-   1.4 s  & Period of one MI cycle \\
-   0.93 s & Duration of the Off-spill period within one MI cycle \\
-  1695 ns & Period of the Delivery Ring \\
+   1.4~s  & Period of one MI cycle \\
+   43.1~ms & Duration of one spill \\
+   8       & Number of spills per MI cycle \\
+    5~ms   & Duration of the period between two spills \\
+   1020~ms & Duration of the off-spill period within one MI cycle \\
+   1695~ns & Period of the Delivery Ring and the duration of one on-spill event\\
+   100~$\mu$s & Duration of one off-spill event \\
+   24.6\%     & Duty factor (total spill time divided by MI cycle duration)\\
+   \hline
   \end{tabular}
 \end{center}
 \end{table}
 
 
+In the on-spill configuration, one event will have  a duration of 1695~ns
+and it records the information associated with the arrival of one proton pulse.
+The trigger will be configured to select interesting events associated with the proton pulse
+and to pre-scale non-triggering events in order to study the performance of the trigger.
+In the off-spill configuration, one event will have a duration of 100~$\mu$s.
+During the off-spill period, Mu2e will trigger on cosmic rays that
+pass through the tracker and/or the calorimeter; it will also collect
+pedestal data from many of the subsystems; some calibration procedures
+may also take place during the off-spill period.
 
-\chapter{The Next Chapter}
-\label{ch:next_chapter}
+Mu2e expects that the accelerator super-cycle will consist of a
+sequence of many of the above MI cycles,
+with an occaisional other cycle mixed in.
+For example there might be beam to MTEST about once per minute.
+When this occurs, Mu2e will have an extended period of off-spill running.
 
-This is chapter 2 and refers to Figure~\ref{fig:blockdiagram}
+There will also be periods in which the accelerator complex is not delivering
+beam to Mu2e for an extended time, minutes, hours, days or weeks.
+In some of these periods Mu2e will shutdown to perform maintenance or repairs;
+in others Mu2e will execute calibration runs;
+and in others Mu2e will collect data in off-spill mode for an extended period of time.
+
+The Mu2e TDAQ team reserved space in their configuration packet to define
+a third operational mode, that they have named near-spill.
+This is to allow for the possibility that some subsystems may want to
+configure themselves differently during the transition from on-spill to off-spill.
+At this time there are no definite plans to use this mode but it is available if needed.
+
+It's possible that the MI cycle might be changed to 22 BO cycles, which
+will extend the duration of the off-spill period.
+Also, Mu2e plans to start operations with a slightly different configuration:
+4 spills instead of 8, each of a longer duration.
+Neither of these materially changes the requirements for the RDM and
+will not be discussed further.
+
+There will be times when Mu2e is taking data but NOvA is not.
+In such times, the base plan is that Mu2e will continue to take data using the same MI cycle.
+There are several technical reasons that prevent Mu2e from reducing the off-spill period
+in order to increase the duty factor.\footnote{
+There are radiation safety limits on the average beam power;
+the production target will have a reduced lifetime at higher average beam power;
+the TDAQ system cannot accomodate a signficiantly higher event rate.
+}
+
+\section{Event WindowTags, EventIDs, Runs and Subruns}
+
+Within the TDAQ system, events are identified by a 48 bit counter refered
+to as the Event Window Tag (EWT);
+this counter will be monotonically increasing and unique over the full Mu2e Run.
+The EWT is distributed by the Clock Fan Out (CFO) system to all of the detector
+readout electronics; it is the basis for event building.
+
+Mu2e has chosen the \art event processing framework to host the algorithms
+that will be run on Mu2e data.  The software filter processes that run
+in the TDAQ farm will each be a separate \art process.  \art will also
+be used for offline data processing.
+In \art, events are uniquely identified by a 3 part identifier called an
+{\code art::EventID}; the parts are named run number, subrun number
+and event number.
+
+The TDAQ system will translate each EWT to an {\code art::EventID}
+before events are presented to the \art based software filter processes.
+The EWT will be recorded as part of the data payload for each event.
+
+The meaning of run and subrun are defined by Mu2e.
+All that \art requires is that a subrun contain zero or more
+events and that a run contain zero or more subruns.
+
+The current plan is that runs will have a duration of a few hours
+and that subruns will contain an integer number of MI cycles and
+have a duration somewhere between 14 seconds and a few minutes.
+This means that each subrun will contain both on-spill and
+off-spill events.   The transition between subruns will
+happen during the off-spill period so that each on-spill
+period is contained within one subrun.
+
+These durations are informed by the following.
+Mu2e has designed a conditions management system
+in which intervals of validity are a range of subruns;
+such a range may, but need not, span runs.
+Therefore subruns must be short enough to follow the most
+rapidly changing conditions.
+Mu2e TDAQ has been designed so that subrun transitions will be
+deadtimeless but that data taking will briefly stop at run
+transitions.  The TDAQ system will do some house keeping
+on run boundaries, including resetting some hardware, reloading
+some firmware and restarting some processes.
+
+\fixme{Is this a good place to talk about atomic subruns and
+  how that informs the choice of subrun duration. }
 
 
-
-\section{If you are new to HEP Software...}
-
-Section 1 of chapter 2
-
-
-\section{If you are an HEP Software expert...}
-
-Section 2 of chapter 2
-
-
+% Example
 % Keep sections under development
 \IfStrEq{\ISDRAFT}{YES}{
 
 \chapter{A Chapter under development}
 \label{ch:under_development}
 
-This is a chapter still under development
-
-\section{If you are new to HEP Software...}
-
-Section 1 of a chapter still under development
-
-
-\section{If you are an HEP Software expert...}
-
-Section 2 of a chapter still under development
+This is a chapter still under development.
+It is kept here to illustrate the use of the  ISDRAFT macro.
 
 } % end `ISDRAFT = YES'
 
 \chapter{Requirements}
 
 This chapter lists requirements for the RDM system.
+The requirements are dervived from the above firehose of information.
 
 \begin{enumerate}
   \item Move data in a timely fashion
@@ -251,19 +357,6 @@ A list of questions that should be addressed in the design of the RDM:
 
 
 \appendix
-
-\chapter{SubRuns}
-\label{ch:app_Subruns}
-
-This appendix has information about subruns
-
-\section{If you are new to HEP Software...}
-
-Section 1 of the appendix on subruns.
-
-\section{If you are an HEP Software expert...}
-
-Section 2 of the appendix on subruns.
 
 \chapter{Network Between Mu2e Building Router and Computer Center}
 \label{app:RouterAndNetwork}.
@@ -289,18 +382,7 @@ The lab network.
 \chapter{Data Logger Local Storage}
 \label{app:DataLoggerLocalStorage}
 
-Specs etc on the Data Logger Local Storage.
-
-
-\section{If you are new to HEP Software...}
-
-Section 1 of the appendix on subruns.
-
-
-\section{If you are an HEP Software expert...}
-
-Section 2 of the appendix on subruns.
-
+\fixme{ Specs etc on the Data Logger Local Storage go here}.
 
 \clearpage
 \phantomsection
@@ -310,4 +392,3 @@ Section 2 of the appendix on subruns.
 
 %\cleardoublepage
 %\printindex
-
