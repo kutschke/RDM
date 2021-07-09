@@ -276,6 +276,7 @@ the TDAQ system cannot accomodate a signficiantly higher event rate.
 }
 
 \section{Event WindowTags, EventIDs, Runs and Subruns}
+\label{sec:TagsIDsRunsSubRuns}
 
 Within the TDAQ system, events are identified by a 48 bit counter refered
 to as the Event Window Tag (EWT);
@@ -319,9 +320,39 @@ transitions.  The TDAQ system will do some house keeping
 on run boundaries, including resetting some hardware, reloading
 some firmware and restarting some processes.
 
-\fixme{Is this a good place to talk about atomic subruns and
-  how that informs the choice of subrun duration. }
+\chapter{Data Streams and File Streams}
 
+This chapter defines the ideas of ``data streams'' and ``file streams''.
+It enumerates the data streams that are anticipated at this time
+and it presents a strawman for how these may be grouped into files.
+
+\fixme{Should I use the word ``dataset'' instead of ``file stream''?
+  I am using a distinct word for now since the idea of dataset is well defined after the
+  data is in SAM.  Will there be properties of files early in the RDM that do not
+  map onto that notion of dataset?
+}
+
+A ``data stream'' is a series of events selected by some algorithm;
+one attribute of events in a data stream is they will all have the same downstream processing.
+For example the on-spill and off-spill events each constitute a separate data stream.
+The on-spill events will have many trigger lines; one could consider each trigger
+line it's own data stream or one might define groups of trigger lines as a data stream.
+Another example: the off-spill events will include some events that triggered based on
+the tracker or calorimter and they will also include events that did not trigger but
+which are retained to collect a sample to study pedestals in the CRV system.
+These are distinct data streams.
+
+A ``file stream'' is a series of files that contain events from one or more data streams.
+For example we might decide to bundle all of the on-spill data streams into a single
+file stream or we might decide to put some of the on-spill data streams into one file
+stream and another set of on-spill data streams into a different file stream.
+For example all of the files containing off-spill events might be one file stream;
+or maybe we will decide to split the off-spill events in to
+the two off-spill data streams into two file streams.
+
+\fixme{We need to address whether data streams or file streams are exclusive or if one
+  event may be in several data streams; we also need to address if one data stream may
+  be in more than one file stream. }
 
 % Example
 % Keep sections under development
@@ -353,6 +384,14 @@ A list of questions that should be addressed in the design of the RDM:
 \item Start by sticking with SAM and move to RUCIO later?  Or move to RUCIO now?
   How does this decision interact with requirements for ongoing simulation, VST
   and test stand work?
+\item Work with TDAQ to understand the constraints that drive the choices of how to
+  map data streams to file streams.
+  \begin{enumerate}
+    \item a separate filestream for the intensity stream.
+    \item split on-spill and off-spill to separate file streams
+    \item split off-spill into triggered and pedestal.
+  \end{enumerate}
+\item In the event of multiple data loggers, when do the files from a single subrun get joined to atomic.
 \end{enumerate}
 
 
@@ -383,6 +422,142 @@ The lab network.
 \label{app:DataLoggerLocalStorage}
 
 \fixme{ Specs etc on the Data Logger Local Storage go here}.
+
+\chapter{Things to Know About \art}
+
+This chapter describes details of \art that should be considered when
+designing the RDM.  This includes details that are important for the RDM
+proper and details that are important when shaping data for downstream
+processing.
+
+\section{Atomic Subruns}
+
+A subrun is said to be ``atomic'' if all of the events in that subrun are found in a single \art file.
+If subruns are atomic, many bookkeeping operations are simplified and Mu2e plans to exploit this;
+therefore the TDAQ and RDM should aim to create atomic subruns as early as possible in the workflow.
+
+Why ``as early as possible'' and not ``must''? That will be addressed later in this section.
+
+There is a subtlety to think about.
+Section~\ref{sec:TagsIDsRunsSubRuns} described that Mu2e subruns will cover many MI cycles
+and, therefore, will include both on-spill and off-spill events.
+One option for the TDAQ, the option that is preferred by DPC,
+is that TDAQ will write on-spill and off-spill events to separate files.
+The Mu2e DPC anticipates only workflows in which these two files are treated separately;
+another way of saying it is that there will be no jobs that read events from both of these files.
+Therefore we can say that within each of these two file streams the design is for subruns to be atomic.
+This is the usual meaning of ``atomic subrun'' throughout this document.
+
+Now back to why ``as early as possible''.
+The base design of the TDAQ is to have one {\code artdaq::DataLogger} process that will
+see all events and write them to disk; it will write several output files.
+However it is possible that a single {\code artdaq::DataLogger} will not have the
+resources to handle the load.  Should that happen the solution is to have two
+{\code artdaq::DataLogger} processes, each of which sees about half of the events.
+In this case all of the output files will be duplicated,
+one for each {\code artdaq::DataLogger}.
+In this case subruns are not atomic;
+the RDM and DPC will need to work together to decide where in the workflow these two files
+are joined to create an atomic subrun.
+
+
+The base design of the TDAQ is that
+a single DataLogger process will write a single on-spill file for each subrun and a single off-spill file
+for each subrun.  However it is possible that the TDAQ does have adequate resources to do this.
+In that case the data may need to split across two DataLogger processes, perhaps on two separate nodes.
+If this happens the
+Should there not be adequate resources, one solution is to 
+
+The concept generalizes.  The TDAQ will also write the intensity stream \fixme{reference to define this}.
+
+
+Suppose that the TDAQ writes on-s
+events are split into
+on-spill and off-spill
+
+
+
+
+
+
+
+This section assumes that the reader is familiar with the \art concepts
+of data products that are held by the {\code art::Run} object
+and data products that are held by the {\code art::SubRun} object.
+It also assumes that the reader is familiar with the \art concepts
+of {\code art::Run} and {\code art::SubRun} fragments
+and with the concept of aggregation for these fragments.
+For information about these concepts see~\cite{RunAndSubRunProducts}
+and~\cite{ProductAggregation}.
+
+
+\art allows events to be split arbitrarily among files.  For example
+one might choose to write all events from one subrun to a single file;
+or one might spread those events over several files; or there may be
+many runs and subruns within a single file, which will occur in
+sparse skims.  We use the phrase ``atomic subrun'' to mean that
+all events from a given subrun reside in one file; in the above
+example both the first and third cases have atomic subruns but
+the second case does not.
+
+By default \art assumes that subruns are not atomic but you
+can tell \art that subruns will be atomic by \fixme{say how to do this}.
+When \art is configured for non atomic subruns there is an extra memory cost;
+for sparse skims this can dominate the memory usage of the process.
+While this added memory cost is small early in the production, chain when
+only a few subruns are seen by any given process, it's important to be
+aware of this constraint when shaping the data for downstream processing.
+
+To understand how the memory cost arises,
+it is necessary to understand the structure of an art file.
+Suppose that you have an art file with run:subrun ( 1:1, 1:2, 2:1, 2:2).
+When you read the art file you will see the sequence of records shown
+in table~\ref{tab:atomicsubruns}.
+
+\begin{table}
+\begin{center}
+\caption[Example For Discussion of Atomic Subruns]{Example for the Discussion of Atomic Subruns}
+\label{tab:atomicsubruns}
+\begin{tabular}{l}\hline
+  begin run record for run 1 \\
+  begin subrun record for subrun 1:1 \\
+  records for the events of subrun 1:1 \\
+  end subrun record for subrun 1:1 \\
+   begin subrun record for subrun 1:2 \\
+   records for the events of subrun 1:2 \\
+   end subrun record for subrun 1:2 \\
+   end run record for run 1. \\ \hline
+   begin run record for run 2. \\
+   begin subrun record for subrun 2:1 \\
+   records for the events of subrun 2:1 \\
+   end subrun record for subrun 2:1 \\
+   begin subrun record for subrun 2:2 \\
+   records for the events of subrun 2:2 \\
+   end subrun record for subrun 2:2 \\
+   end run record for run 2. \\
+   \hline
+  \end{tabular}
+\end{center}
+\end{table}
+
+Now suppose that your job reads the run and subrun scope data products at begin run/subrun time.
+If \art is configured for atomic subruns, after processing the module and service
+{\code endSubRun} calls, it will delete the subrun data products from memory. It can safely do this
+because it knows that it will never see another event from that subrun.
+Similar for the run scope data products.
+
+On the other hand, if \art has been configured for non-atomic subruns, it will retain all subrun
+and run data products in memory until the end of the job.
+For a job that sees a small number of subruns this is usually not an important memory cost; but
+for sparse skims it can be dominant.
+
+
+There is a second consideration about atomic subruns:
+for sparse skims there is signficant memory savings if subruns are atomic.
+While the RDM will not see sparse skims, the people developing it should know the big picture.
+
+
+\section{Order of Events}
 
 \clearpage
 \phantomsection
