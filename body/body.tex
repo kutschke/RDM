@@ -17,7 +17,7 @@ Other functions of the RDM include:
 \item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream processing.
 \item Managing the free space in the online disk buffer
 \item Copy/mirror subsets of the online databases to the offline databases
-\item Move miscellaneous other data, such as the output of the Data Quality Monitoring (DQM) system, to long term storage.
+\item Move miscellaneous other data, such as the output of the online Data Quality Monitoring (DQM) system, to long term storage.
 \end{enumerate}
 
 The current plan is that the offline data processing workflows will be driven by updates to the file catalog;
@@ -38,7 +38,8 @@ Understanding the relationships among the data streams and their implications
 for downstream processing are the starting point for designing the RDM.
 
 This document includes additional information that is not written down concisely
-in other places and is needed to frame the description of the data streams.
+in other places and is needed either to frame the description of the data streams
+or to inform requirements.
 
 
 The RDM owns no hardware.  It uses hardware that is owned and maintained
@@ -46,7 +47,7 @@ by the Mu2e TDAQ group,
 by the Fermilab Scientific Computing Division (SCD)
 and by the Fermilab Core Computing Division (CCD).
 The only M\&S items within RDM are to pay CCD for router maintenance,
-as described in Appendix~\ref{app:RouterAndNetwork}.
+and its end-of-service-life replacement, as described in Appendix~\ref{app:RouterAndNetwork}.
 
 In early planning for the Mu2e DPC, what is now called the RDM was called the Data Logging System.
 However that name is too close to two related concepts in the online world:
@@ -63,7 +64,7 @@ lifetime of Mu2e.
 
 The DPC is not part of the Mu2e Construction Project but it is part of Mu2e Operations
 and pre-Operations.
-In various places, this document refers to ``Mue groups'', such as the TDAQ group.
+In various places, this document refers to ``Mu2e groups'', such as the TDAQ group.
 Sometimes this will mean an L2 group within the Mu2e Construction Project and at other
 times it will mean a group within the Mu2e Operations or Pre-Operations organization.
 Most of the time it will not be important to distinguish between these different meanings
@@ -120,15 +121,18 @@ Appendix~\ref{app:DataLoggerLocalStorage} has the specs for and a discussion abo
 In earlier DPC related talks and documents this was refered to as the ``48 hour disk buffer''.
 In addition to the triggered events, a variety of prescaled, untriggered events will pass the
 trigger and be handled the same as events that passed the trigger.
-Finally, there will be several special data streams.
+Finally, there will be special data streams for calibrations.
 
-The base design is to have a single data logger node that receives data from all DAQ server nodes.
-Should there be limitations within the TDAQ system, such as bandwidth or latency limits,
-it may be necessary to have two or more Data Logger nodes, each seeing a fraction of each data stream.
-How this affects RDM will be discussed in section \fixme{add reference}.
+The base design is to have a single data logger node that receives the data from all DAQ server nodes
+and writes it to files in the Data Logger Local Storage.
+The data logger node will write several files, each containing events selected by a different algorithm.
+Details can be found in Chapter~\ref{ch:DataStreamsAndFileStreams}.
+There is an entry in the Risk Registry for the case that a technical limitation requires that
+there be more than one data logger node, each of which sees only a subset
+of the events; see Appendix~\ref{app:Risk:SplitFiles}.
 
 The Data Logger nodes will also have a process called a ``Dispatcher''
-that requests events from the DataLogger process
+that requests events from the {\code art::DataLogger} process
 and forwards them to clients.
 The Dispatcher is designed to exert no back pressure on the DataLogger process
 and, therefore, will normally see only a subset of the events.
@@ -142,8 +146,8 @@ to move these files to long term storage.
 All of the computing resources in the TDAQ farm are on a private subnet
 and cannot been seen from the lab network.  Access in and out
 of the private subnet will be via a gateway node that is connected to
-both the private subnet and the lab network.  The gateway node is the responsibility
-of the TDAQ group.
+both the private subnet and the lab network.
+Purchasing the gateway node is the responsibility of the TDAQ group.
 
 When the Mu2e Hall was built and provisioned, CCD personnel installed a dual router
 and connected it to the lab optical fiber network.
@@ -151,19 +155,16 @@ RDM will move data from the Mu2e Hall
 to the computer center using this router and the lab optical fibre network.
 The router is standard item that CCD uses in many places around the lab; it stocks spares.
 CCD is responsible for the maintenance of both the router and the network.
-There are two M\&S items associated with the router: Mu2e pays a yearly
-maintenance fee on the router and Mu2e is responsible to pay for replacement
-of the router when the warrantee period expires.  Both are paid to CCD,
-which has a lab-wide arrangement with the router vendor.
-The specs of this router and additional details of Mu2e's arrangement with CCD
-can be found in Appendix~\ref{app:RouterAndNetwork}.
+See Appendix~\ref{app:RouterAndNetwork} for additional details of the arrangement with with CCD,
+including costs that must be paid by Mu2e to CCD for this service.
+
 
 For the foreseeable future Mu2e expects that the disk and tape services provided
 by SCD will be dCache and ENSTORE.
 At this writing Mu2e is using SAM as the file catalog system for files produced
 by simulations, tests stands and Vertical Slice Tests (VST).
 SCD plans to phase out SAM and replace it with a more modern system, RUCIO \fixme{reference};
-RUCIO is already in use by CMS and by DUNE for Proto-DUNE single phase data.
+RUCIO is already in use by CMS and by DUNE for proto-DUNE Single Phase data.
 It is likely that SAM will be phased out during the lifetime of Mu2e.
 One of the questions to ask in the design of the RDM is
 when to make the transition to RUCIO.
@@ -176,14 +177,16 @@ It is expected that, for most of it's running time,
 Mu2e will share parts of the Fermilab accelerator complex with a neutrino experiment,
 first, with NOvA and, later, with DUNE.
 To keep this document easier to read it will discuss sharing with NOvA but sharing with DUNE is implied.
-The change from NOvA to DUNE will not materially change the requirements of the RDM.
+The change from NOvA to DUNE may change many details
+but will not materially change the requirements of the RDM.
 
 Sharing with NOvA drives the repeating cycle of Mu2e operations, a Main Injector (MI) cycle of
 21 Booster (BO) cycles;
 the duration of one Booster cycle is 1/15~s,
 making the duration of one MI cycle 1.4~s.
 Figure~\ref{fig:beamMacroStructure} shows a cartoon of the MI cycle.
-From the Mu2e point of view, the MI cycle starts with a series of 8 spills;
+From the Mu2e point of view, the cycle starts with a series of 8 slow spills
+from the Delivery Ring (DR) to the Mu2e production target;
 within each spill, proton pulses arrive at Mu2e every 1695~ns;
 the duration of a spill is about 43.1~ms, or about 25,500 pulses.
 There is a gap of about 5~ms between spills.
@@ -232,19 +235,19 @@ Table~\ref{tab:timescales} summarizes the time scales within one MI cycle.
 
 
 In the on-spill configuration, one event will have  a duration of 1695~ns
-and it records the information associated with the arrival of one proton pulse.
+and it records the information associated with one proton pulse.
 The trigger will be configured to select interesting events associated with the proton pulse
 and to pre-scale non-triggering events in order to study the performance of the trigger.
 In the off-spill configuration, one event will have a duration of 100~$\mu$s.
 During the off-spill period, Mu2e will trigger on cosmic rays that
 pass through the tracker and/or the calorimeter; it will also collect
-pedestal data from many of the subsystems; some calibration procedures
+pedestal data from some of the subsystems; some calibration procedures
 may also take place during the off-spill period.
 
 Mu2e expects that the accelerator super-cycle will consist of a
 sequence of many of the above MI cycles,
 with an occaisional other cycle mixed in.
-For example there might be beam to MTEST about once per minute.
+For example, when MTEST is active, there is usually beam delivered to MTEST about once per minute.
 When this occurs, Mu2e will have an extended period of off-spill running.
 
 There will also be periods in which the accelerator complex is not delivering
@@ -259,20 +262,25 @@ This is to allow for the possibility that some subsystems may want to
 configure themselves differently during the transition from on-spill to off-spill.
 At this time there are no definite plans to use this mode but it is available if needed.
 
+The design of the Mu2e TDAQ system is that trigger processing lags the events
+during the on-spill period and catches up during the off-spill period.  There is
+buffering at various places in the TDAQ system to support this.
+
 It's possible that the MI cycle might be changed to 22 BO cycles, which
 will extend the duration of the off-spill period.
 Also, Mu2e plans to start operations with a slightly different configuration:
-4 spills instead of 8, each of a longer duration.
+4 spills instead of 8, with each spill of a longer duration than 43.1~ms.
 Neither of these materially changes the requirements for the RDM and
 will not be discussed further.
 
 There will be times when Mu2e is taking data but NOvA is not.
-In such times, the base plan is that Mu2e will continue to take data using the same MI cycle.
+In such times, the base plan is that Mu2e will continue to take data using the same MI cycle of 21 BO cycles.
 There are several technical reasons that prevent Mu2e from reducing the off-spill period
 in order to increase the duty factor.\footnote{
 There are radiation safety limits on the average beam power;
 the production target will have a reduced lifetime at higher average beam power;
-the TDAQ system cannot accomodate a signficiantly higher event rate.
+the TDAQ system cannot accomodate a signficiantly higher event rate because it
+uses the off-spill period to catch up on buffered events.
 }
 
 \section{Event WindowTags, EventIDs, Runs and Subruns}
@@ -280,14 +288,21 @@ the TDAQ system cannot accomodate a signficiantly higher event rate.
 
 Within the TDAQ system, events are identified by a 48 bit counter refered
 to as the Event Window Tag (EWT);
-this counter will be monotonically increasing and unique over the full Mu2e Run.
-The EWT is distributed by the Clock Fan Out (CFO) system to all of the detector
-readout electronics; it is the basis for event building.
+this counter will be monotonically increasing and unique over the full Mu2e run.
+The EWT is distributed by the Clock Fan Out (CFO) system to all elements of the
+detector readout electronics;
+it is the basis for event building.
+For each Event Window the CFO also distributes a few bits to indicate the
+EventMode; these bits tell the system whether it is in on-spill mode, off-spill mode
+or in some other mode.
 
-Mu2e has chosen the \art event processing framework to host the algorithms
-that will be run on Mu2e data.  The software filter processes that run
-in the TDAQ farm will each be a separate \art process.  \art will also
-be used for offline data processing.
+\fixme{How many bits for EventMode.  Add a reference.}
+
+\fixme{Are there calibration modes?  For example pulsers to the calo or freon runs?}
+
+Mu2e has chosen the \art event processing framework as it's software framework.
+The software filter processes that run in the trigger farm will each be a separate \art process.
+\art will also be used for offline data processing.
 In \art, events are uniquely identified by a 3 part identifier called an
 {\code art::EventID}; the parts are named run number, subrun number
 and event number.
@@ -296,12 +311,18 @@ The TDAQ system will translate each EWT to an {\code art::EventID}
 before events are presented to the \art based software filter processes.
 The EWT will be recorded as part of the data payload for each event.
 
+\fixme{ So far as I know the mechanics of mapping EWT to EventID
+  is only captured in an email thread.
+  Is there a real reference?
+  If not, who will write it up in a referenceable way?
+}
+
 The meaning of run and subrun are defined by Mu2e.
 All that \art requires is that a subrun contain zero or more
 events and that a run contain zero or more subruns.
 
-The current plan is that runs will have a duration of a few hours
-and that subruns will contain an integer number of MI cycles and
+The current plan is that runs will typically have a duration of a few hours
+while subruns will contain an integer number of MI cycles and
 have a duration somewhere between 14 seconds and a few minutes.
 This means that each subrun will contain both on-spill and
 off-spill events.   The transition between subruns will
@@ -310,32 +331,61 @@ period is contained within one subrun.
 
 These durations are informed by the following.
 Mu2e has designed a conditions management system
-in which intervals of validity are a range of subruns;
+in which intervals of validity (IOV) are a specified as a range of subruns;
 such a range may, but need not, span runs.
 Therefore subruns must be short enough to follow the most
-rapidly changing conditions.
-Mu2e TDAQ has been designed so that subrun transitions will be
-deadtimeless but that data taking will briefly stop at run
-transitions.  The TDAQ system will do some house keeping
+rapidly changing conditions.  As this writing it seems
+likely that the upper limit for the duration of a subrun will
+be set by data handling and downstream data processing considerations;
+that is, files should not be too big or too small
+and the follow-on data processing jobs should be able to process one subrun
+in, at most, a few hours.
+The Mu2e TDAQ has been designed so that subrun transitions will be deadtimeless
+but that data taking will pause for a few minutes at run transitions.
+The design is that the TDAQ system will do some house keeping
 on run boundaries, including resetting some hardware, reloading
 some firmware and restarting some processes.
+These are prophylactic steps to ensure a robust TDAQ system.
+Therefore a run should be long enough that the deadtime
+caused by the run transition is a small fraction of the total run time
+but short enough that the resets occur frequently enough
+to keep the system robust.
+
+Of course anomalies that occur during data taking will cause some runs
+and subruns to be cut short.
+
+\art has a feature that allows users to define the maximum
+number of events in one file or a maximum file size.
+When this feature is enabled,
+and when \art detects that a limit has been reached,
+it closes the output file and opens a new one.
+\art provides several options to ensure distinct names for these files.
+Some experiments use these features to split the events from one
+subrun over many files,
+keeping each file small enough for convenient data handling and data processing.
+Mu2e has decided not to do this.
+Mu2e will choose the duration of a subrun to ensure that this is not needed.
+The language is that Mu2e will produce ``atomic subruns''; there are some
+subtlties to this that are discussed in Appendix~\ref{sec:AtomicSubruns}.
+
 
 \chapter{Data Streams and File Streams}
+\label{ch:DataStreamsAndFileStreams}
 
 This chapter defines the ideas of ``data streams'' and ``file streams''.
 It enumerates the data streams that are anticipated at this time
 and it presents a strawman for how these may be grouped into files.
 
 \fixme{Should I use the word ``dataset'' instead of ``file stream''?
-  I am using a distinct word for now since the idea of dataset is well defined after the
-  data is in SAM.  Will there be properties of files early in the RDM that do not
-  map onto that notion of dataset?
+  I am using a distinct word for now since I want to reserve the word
+  of dataset for something that is defined using SAM.  Are these
+  two ideas identical?
 }
 
 A ``data stream'' is a series of events selected by some algorithm;
-one attribute of events in a data stream is they will all have the same downstream processing.
-For example the on-spill and off-spill events each constitute a separate data stream.
-The on-spill events will have many trigger lines; one could consider each trigger
+one attribute of events in a data stream is they all require the same downstream processing.
+For example the on-spill and off-spill events are distinct data streams.
+The on-spill events will have many trigger lines; one might consider each trigger
 line it's own data stream or one might define groups of trigger lines as a data stream.
 Another example: the off-spill events will include some events that triggered based on
 the tracker or calorimter and they will also include events that did not trigger but
@@ -350,9 +400,12 @@ For example all of the files containing off-spill events might be one file strea
 or maybe we will decide to split the off-spill events in to
 the two off-spill data streams into two file streams.
 
-\fixme{We need to address whether data streams or file streams are exclusive or if one
-  event may be in several data streams; we also need to address if one data stream may
-  be in more than one file stream. }
+The key point is that data streams are a fundamental idea,
+while file streams are choice about how to group data streams for convenience of data handling and downstream processing.
+
+\fixme{We need to address if a given event may be in more than one data stream.
+       And we need to address if a given data stream may be in more than one file stream.
+}
 
 % Example
 % Keep sections under development
@@ -431,14 +484,26 @@ proper and details that are important when shaping data for downstream
 processing.
 
 \section{Atomic Subruns}
+\label{sec:AtomicSubruns}
 
 A subrun is said to be ``atomic'' if all of the events in that subrun are found in a single \art file.
-If subruns are atomic, many bookkeeping operations are simplified and Mu2e plans to exploit this;
+If subruns are atomic, some bookkeeping operations are simplified and Mu2e plans to exploit this;
 therefore the TDAQ and RDM should aim to create atomic subruns as early as possible in the workflow.
 
-Why ``as early as possible'' and not ``must''? That will be addressed later in this section.
+Why ``as early as possible'' and not ``must''? 
 
-There is a subtlety to think about.
+The base design of the TDAQ is to have one {\code artdaq::DataLogger} process that will
+see all events and write them to disk; it may write several output files.
+However it is possible that a single {\code artdaq::DataLogger} will not have the
+resources to handle the load.  Should that happen the solution is to have two
+{\code artdaq::DataLogger} processes, each of which sees about half of the events.
+In this case all of the output files will be duplicated,
+one for each {\code artdaq::DataLogger}.
+In this case subruns are not atomic;
+the RDM and DPC will need to work together to decide where in the workflow these two files
+are joined to create atomic subruns.
+
+There is an additional subtlety.
 Section~\ref{sec:TagsIDsRunsSubRuns} described that Mu2e subruns will cover many MI cycles
 and, therefore, will include both on-spill and off-spill events.
 One option for the TDAQ, the option that is preferred by DPC,
@@ -448,38 +513,7 @@ another way of saying it is that there will be no jobs that read events from bot
 Therefore we can say that within each of these two file streams the design is for subruns to be atomic.
 This is the usual meaning of ``atomic subrun'' throughout this document.
 
-Now back to why ``as early as possible''.
-The base design of the TDAQ is to have one {\code artdaq::DataLogger} process that will
-see all events and write them to disk; it will write several output files.
-However it is possible that a single {\code artdaq::DataLogger} will not have the
-resources to handle the load.  Should that happen the solution is to have two
-{\code artdaq::DataLogger} processes, each of which sees about half of the events.
-In this case all of the output files will be duplicated,
-one for each {\code artdaq::DataLogger}.
-In this case subruns are not atomic;
-the RDM and DPC will need to work together to decide where in the workflow these two files
-are joined to create an atomic subrun.
-
-
-The base design of the TDAQ is that
-a single DataLogger process will write a single on-spill file for each subrun and a single off-spill file
-for each subrun.  However it is possible that the TDAQ does have adequate resources to do this.
-In that case the data may need to split across two DataLogger processes, perhaps on two separate nodes.
-If this happens the
-Should there not be adequate resources, one solution is to 
-
-The concept generalizes.  The TDAQ will also write the intensity stream \fixme{reference to define this}.
-
-
-Suppose that the TDAQ writes on-s
-events are split into
-on-spill and off-spill
-
-
-
-
-
-
+\subsection{Sparse Skims}
 
 This section assumes that the reader is familiar with the \art concepts
 of data products that are held by the {\code art::Run} object
@@ -491,17 +525,23 @@ For information about these concepts see~\cite{RunAndSubRunProducts}
 and~\cite{ProductAggregation}.
 
 
-\art allows events to be split arbitrarily among files.  For example
-one might choose to write all events from one subrun to a single file;
-or one might spread those events over several files; or there may be
-many runs and subruns within a single file, which will occur in
-sparse skims.  We use the phrase ``atomic subrun'' to mean that
-all events from a given subrun reside in one file; in the above
-example both the first and third cases have atomic subruns but
-the second case does not.
+By default \art assumes that subruns are not atomic
+but you can tell \art that subruns will be atomic by adding this fcl
+parameter to the parameter set of the RootInput module
 
-By default \art assumes that subruns are not atomic but you
-can tell \art that subruns will be atomic by \fixme{say how to do this}.
+\cmd{ compactEventRanges : true}
+
+When \art sees a beginRun transition, it reads all run data products from the input file.
+When \art is configured for atomic subruns, it drops these data products
+from memory at the matching endRun transition.
+Similarly, when \art has beginSubRun transition, it reads all subrun data products from the input file.
+When \art is configured for atomic subruns, it drops these data products
+from memory at the matching endSubRun transition.
+When \art is not configured for atomic subruns it does not drop these data products from
+memory at the matching endSubRun transition; the reason is that 
+
+On the otherhand, when art is configured for non-atomic subruns
+
 When \art is configured for non atomic subruns there is an extra memory cost;
 for sparse skims this can dominate the memory usage of the process.
 While this added memory cost is small early in the production, chain when
@@ -558,6 +598,28 @@ While the RDM will not see sparse skims, the people developing it should know th
 
 
 \section{Order of Events}
+
+\chapter{Risk Registry}
+\label{app:RisKRegistry}
+
+\section{Split Files from DAQ}
+\label{app:Risk:SplitFiles}
+
+The base design is to have a single data logger node that receives data from all DAQ server nodes.
+This design cannot be tested at scale until all of the hardware has been purchased;
+even then, the tests will be based on simulated events, not actual data.
+There is a risk that there will be a bandwidth limit that makes this impossible.
+Should this occur, there backup plan is to have two or more Data Logger nodes
+that each see a fraction of the events;
+perhaps half of the DAQ Servers talk to one Data Logger node and the other half talk to another node.
+The result will be that events from the same file stream from the same subrun end up split across multiple files.
+This breaks the requirement that subruns be atomic.
+
+Should this occur the RDM will need to modify the bookkeeping system to allow non-atomic subruns early
+in the workflow and modify the workflow to restore atomic subruns as soon as possible.
+
+Another alternative is to tighten the trigger algorithms to accept fewer events;
+this risks loosing events that we really do want to keep and is the last alternative.
 
 \clearpage
 \phantomsection
