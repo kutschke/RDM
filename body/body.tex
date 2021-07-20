@@ -70,6 +70,10 @@ times it will mean a group within the Mu2e Operations or Pre-Operations organiza
 Most of the time it will not be important to distinguish between these different meanings
 of group; when it is important, it will be stated explicitly.
 
+The phrase ``detector readout electronics'' is intended as collective noun for all elements
+up to and including the Read Out Controller (ROC) chips; it does not include
+the Data Transfer Controlers (DTC).
+
 
 \chapter{Background Information}
 \label{chap:BackgroundInfo}
@@ -116,7 +120,7 @@ that run on the DAQ server nodes;
 the software makes the trigger decision.
 The present design is 20 software filter processes on each of the 40 DAQ server nodes, 800 total.
 Events that pass the trigger are forwarded to a Data Logger node that will write the events
-to files in the ``Data Logger Local Storage'', a RAID 0 disk array on the bus of the Data Logger node.
+to files in the Data Logger Local Storage (DLLS), a RAID 0 disk array on the bus of the Data Logger node.
 Appendix~\ref{app:DataLoggerLocalStorage} has the specs for and a discussion about this disk array.
 In earlier DPC related talks and documents this was refered to as the ``48 hour disk buffer''.
 In addition to the triggered events, a variety of prescaled, untriggered events will pass the
@@ -124,7 +128,7 @@ trigger and be handled the same as events that passed the trigger.
 Finally, there will be special data streams for calibrations.
 
 The base design is to have a single data logger node that receives the data from all DAQ server nodes
-and writes it to files in the Data Logger Local Storage.
+and writes it to files in the DLLS.
 The data logger node will write several files, each containing events selected by a different algorithm.
 Details can be found in Chapter~\ref{ch:DataStreamsAndFileStreams}.
 There is an entry in the Risk Registry for the case that a technical limitation requires that
@@ -354,6 +358,8 @@ to keep the system robust.
 Of course anomalies that occur during data taking will cause some runs
 and subruns to be cut short.
 
+\fixme{where does the next para belong?}
+
 \art has a feature that allows users to define the maximum
 number of events in one file or a maximum file size.
 When this feature is enabled,
@@ -367,6 +373,118 @@ Mu2e has decided not to do this.
 Mu2e will choose the duration of a subrun to ensure that this is not needed.
 The language is that Mu2e will produce ``atomic subruns''; there are some
 subtlties to this that are discussed in Appendix~\ref{sec:AtomicSubruns}.
+
+\section{Detector Subsystem View}
+\label{ssec:detectorSubsystemView}
+
+Data from the various subsystems flows through different paths from the
+detectors to the data logger local storage, which informs how
+information is organized into files in the DLLS.  This section will
+give a enough information to understand the file organziation.
+
+
+\subsection{Tracker and Calorimeter}
+\label{ssec:TrkAndCal}
+
+Data flows from the tracker and calorimeter into 36 of 40 DAQ servers;
+the details of the event building may be found in~\fixme{provide a reference}
+but understanding those details is not important for understanding this note.
+The end result is that each server receives buffers of events from lower
+levels of the DAQ.  Each event contains complete raw data from
+the tracker and calorimeter but no information from the other subsystems.
+Each event is found in exactly one of the buffers; at this stage there has been
+no filtering of events.
+
+Each DAQ server runs 20 \art based software filter processes; each process
+is independent of the others.
+When one of these processes is free it requests one event
+from the DAQ buffers, processes that event, makes a trigger
+decision and passes the triggered events on to the the Data Logger node.
+The current design is that about 1 in 400 events will pass the trigger;
+this includes all events that pass the primary triggers,
+pre-scaled events that pass the secondary triggers,
+pre-scaled events that fail at selected places during trigger processing,
+and random triggers.
+The rate is dominated by pre-scaled secondary triggers,
+which are primarily used for calibration and monitoring.
+
+\fixme{Define primary and secondary triggers.  Is this used elsewhere? I should list them somewhere.}
+
+On the Data Logger nodes, the triggered events are received by an {\code artdaq::DataLogger}
+process that writes all events to files in the DLLS.
+This process may be configured to write all events to a single file
+or to split the events across several files,
+perhaps on-spill to one file and off-spill to another.
+The details are to be determined.
+
+
+
+\subsection{Cosmic Ray Veto}
+\label{ssec:CRV}
+
+The first description will be for on-spill running.
+
+Data from the CRV system is read from the detectors and held in buffers in the
+readout electronics chain. \fixme{where are the buffers? ROC? FEB?}
+When the {\code artdaq::DataLogger} process receives an event, it sends a message
+to the CRV system and requests that information from that event be forwarded to
+the Data Logger node.  This information flows through 2 two of the 40 DAQ servers
+to a second {\code artdaq::DataLogger} process that is running on the Data Logger Node.
+This second {\code artdaq::DataLogger} process writes the events to files in the DLLS.
+Again, this process may be configured to write all events to a single file
+or to split the events across several files,
+perhaps on-spill to one file and off-spill to another.
+The details are to be determined.
+
+The end result is that for every event there will be two files in the DLLS,
+one containing the tracker and calorimeter information
+and one containing the CRV information.
+
+The original design of the TDAQ was the that one {\code artdaq::DataLogger} process
+would receive the tracker and calorimeter information
+and buffer that internally until the CRV information arrived.
+After that information arrived, it would then write a file containing information from all 3 subsystems.
+Recently the TDAQ team became concerned that this scheme would not work because
+the latency to fetch information from the CRV would require too large a buffer in the
+{\code artdaq::DataLogger} process.
+Therefore this plan was replaced with the one described earlier.
+
+Current planning is that the handoff from TDAQ to RMD will be done as two files
+for each event.
+One of the questions to be answered when designing the RMD will be to identify
+the point in the work flow that these two files will be joined into one.
+That point could be within the RMD or within Pass1, the first step in the
+reconstruction chain.
+
+During off-spill runnnig there will be 3 classes of data.
+In the first case data will flow from the tracker and calorimeter into the
+DAQ Server farm in the same way as during on-spill.
+The software trigger filters will be programmed to find interesting events
+of cosmic ray origin;
+the trigger rate for these events will quite low, perhaps 10 or 20 Hz.
+These events will be forwarded to the Data Logger node, which will
+write one file with the tracker+calorimeter data and a second
+file for the CRV data for the same events.
+
+\fixme{The second case is pre-scaled CRV pedestals.  How does this work.
+}
+
+The third case is that the calibration data.  For example the Calorimeter
+subsystem has discussed flashing the crystals with laser light during this period.
+
+
+\subsection{Extinction Monitor}
+\label{ssec:ExtMon}
+
+\subsection{Muon Stopping Target Monitor}
+\label{ssec:ExtMon}
+
+\subsection{Production Target Scanning Monitor}
+
+The principle client of data from the PTSM is the accelerator control room.
+At this writing it has not yet been defined if it the PTSM will write any data the the DLLS.
+
+
 
 
 \chapter{Data Streams and File Streams}
@@ -425,8 +543,16 @@ This chapter lists requirements for the RDM system.
 The requirements are dervived from the above firehose of information.
 
 \begin{enumerate}
-  \item Move data in a timely fashion
-  \item prioritize recovery from down time.
+  \item Move data in a timely fashion; goal is that Pass1 will be complete within 6 hours of file close 95\% of the time.
+    \fixme{check 6 hours}
+  \begin{enumerate}
+    \item When a backlog occurs, for example, during scheduled dCache maintenance, prioritize which files go first.
+    \item The DAQ may produce some files that need to travel in pairs, for example Trk+Cal on-spill and CRV on-spill.
+  \end{enumerate}
+\item Manage free space in the data logger local storage to ensure enough space for at least \fixme{ ??} more
+  hours of data taking.
+\item Provide a way to monitor the status of the RDM;
+  the monitoring system should automatically raise warnings an alarms when appropriate.
 \end{enumerate}
 
 \chapter{Questions}
@@ -444,7 +570,13 @@ A list of questions that should be addressed in the design of the RDM:
     \item split on-spill and off-spill to separate file streams
     \item split off-spill into triggered and pedestal.
   \end{enumerate}
+\item Identify where in the workflow the split raw data files, Trk+Cal in one,
+  and CRV in the other, will be joined into a single file.  This will require consultation with the team running
+  Pass1.
 \item In the event of multiple data loggers, when do the files from a single subrun get joined to atomic.
+\item Check with TDAQ: will you close an output file every subrun and open a new one? Will it be the same
+  on all file streams or can it differ?  What's the plan to deal with a subrun transition when one
+  event is very late arriving?  How does that last case affect RDM?
 \end{enumerate}
 
 
@@ -490,7 +622,7 @@ A subrun is said to be ``atomic'' if all of the events in that subrun are found 
 If subruns are atomic, some bookkeeping operations are simplified and Mu2e plans to exploit this;
 therefore the TDAQ and RDM should aim to create atomic subruns as early as possible in the workflow.
 
-Why ``as early as possible'' and not ``must''? 
+Why ``as early as possible'' and not ``must''?
 
 The base design of the TDAQ is to have one {\code artdaq::DataLogger} process that will
 see all events and write them to disk; it may write several output files.
