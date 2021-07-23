@@ -381,6 +381,15 @@ Data from the various subsystems flows through different paths from the
 detectors to the data logger local storage, which informs how
 information is organized into files in the DLLS.  This section will
 give a enough information to understand the file organziation.
+The text in this section refers to Figure~\ref{FilesInDLLS.pdf}.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/FilesInDLLS.pdf}
+\caption[Files in the DLLS]{
+  Files in the Data Logger Local Store; the figure is described in the text.}
+\label{fig:filesDLLS}
+\end{figure}
 
 
 \subsection{Tracker and Calorimeter}
@@ -476,15 +485,28 @@ subsystem has discussed flashing the crystals with laser light during this perio
 \subsection{Extinction Monitor}
 \label{ssec:ExtMon}
 
+The Extinction Monitor system sends its data to a single node in the DAQ server farm.
+That server will receive the data and write it directly to one or more files in
+the DLLS.  This server will also have trigger filter processes that receive
+data from buffers on the 36 servers that talk to the tracker and calorimeter.
+
+\fixme{confirm that there are not artdaq::DataLogger proccesses involved and
+that the DLLS is nfs mounted to this server.}
+
 \subsection{Muon Stopping Target Monitor}
 \label{ssec:ExtMon}
 
+The Muon Stopping Target Monitor sends its data to a single node in the DAQ server farm.
+That server will receive the data and write it directly to one or more files in
+the DLLS.  This server will also have trigger filter processes that receive
+data from buffers on the 36 servers that talk to the tracker and calorimeter.
+
 \subsection{Production Target Scanning Monitor}
 
-The principle client of data from the PTSM is the accelerator control room.
+The principle client for data from the PTSM is the accelerator control room.
 At this writing it has not yet been defined if it the PTSM will write any data the the DLLS.
-
-
+Should that happen it is likely that the pattern will be the same as for the ExtMon
+and MSTM.
 
 
 \chapter{Data Streams and File Streams}
