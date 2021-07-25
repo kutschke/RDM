@@ -178,37 +178,37 @@ It is likely that SAM will be phased out during the lifetime of Mu2e.
 One of the questions to ask in the design of the RDM is
 when to make the transition to RUCIO.
 
-\section{Event WindowTags and EventMode}
+\fixme{Say something about Pass1 and follow-on elements of the offline processing.}
+
+\section{The EventWindowTag and the EventMode}
 \label{sec:EWTagAndEventMode}
 
 The heart of the TDAQ system is the Clock Fan-Out (CFO) that delivers
 configuration information and timing signals to all elements of the DAQ.
-Just prior to the start of each event the CFO distributes a configuration packet
+Just prior to the start of each event, the CFO distributes a configuration packet
 that describes the upcoming event;
-this includes two elemnents that will be discused below.
+this includes two elements that will be discused below.
 
-\fixme{As Ryan what the right name for configuration packet is.}
+\fixme{Ask Ryan what the right name for configuration packet is.}
 
 An event window is defined as time interval during which the DAQ collects data for one event.
-Each event window is identified by a 48 bit field in the configuration packet called
+Each event window is identified by a 48 bit field in the configuration packet, called
 the Event Window Tag (EWT);
 the EWT will be monotonically increasing throughout the Mu2e experiment and
-enough bits have been reserved for it to produce unique identifiers for each event.
+enough bits have been reserved for it to produce unique identifiers for all
+events over a many-year run.
 The CFO is responsible for incrementing the EWT and putting the correct value into
 the configuration packet for each event.
-The detector readout electronics label their information with the EWT,
+The detector readout electronics label information from their subsystem with the EWT,
 which is later used as the key for event building.
 
 The Mu2e detector can operate in several modes, two of which,
 on-spill and off-spill, will be discussed in the next section.
 In addtion there will be several calibration modes.
-The detector readout electronics have pre-programmed operations defined for each mode.
-When it creates the configuration packed for each event,
-the CFO sets a bit field called the Event Mode (EM);
-the detector electronics read these bits
-and perform the pre-progammed operations for the given mode.
-
-
+All elements of the TDAQ have pre-programmed operations defined for each mode.
+When the CFO creates the configuration packet for each event,
+it sets a bit field called the EventMode (EM)
+that tells the TDAQ system in which mode to operate for the upcoming event.
 
 \section{On-Spill, Off-Spill and Near-Spill}
 
@@ -218,7 +218,7 @@ It is expected that, for most of it's running time,
 Mu2e will share parts of the Fermilab accelerator complex with a neutrino experiment,
 first, with NOvA and, later, with DUNE.
 To keep this document easier to read it will discuss sharing with NOvA but sharing with DUNE is implied.
-The change from NOvA to DUNE may change many details
+The change from NOvA to DUNE may change details
 but will not materially change the requirements of the RDM.
 
 Sharing with NOvA drives the repeating cycle of Mu2e operations, a Main Injector (MI) cycle of
@@ -229,7 +229,7 @@ Figure~\ref{fig:beamMacroStructure} shows a cartoon of the MI cycle.
 From the Mu2e point of view, the cycle starts with a series of 8 slow spills
 from the Delivery Ring (DR) to the Mu2e production target;
 within each spill, proton pulses arrive at Mu2e every 1695~ns;
-the duration of a spill is about 43.1~ms, or about 25,500 pulses.
+the duration of a spill is nominally 25,438 pulses, about 43.1~ms.
 There is a gap of about 5~ms between spills.
 The eigth spill is followed by a period of about 1020~ms,
 during which no proton pulses arrive at Mu2e;
@@ -293,7 +293,7 @@ When this occurs, Mu2e will have an extended period of off-spill running.
 
 There will also be periods in which the accelerator complex is not delivering
 beam to Mu2e for an extended time, minutes, hours, days or weeks.
-In some of these periods Mu2e will shutdown to perform maintenance or repairs;
+In some of these periods Mu2e will shutdown to perform maintenance, repairs or upgrades;
 in others Mu2e will execute calibration runs;
 and in others Mu2e will collect data in off-spill mode for an extended period of time.
 
@@ -303,14 +303,15 @@ This is to allow for the possibility that some subsystems may want to
 configure themselves differently during the transition from on-spill to off-spill.
 At this time there are no definite plans to use this mode but it is available if needed.
 
-The design of the Mu2e TDAQ system is that trigger processing lags the events
+The design of the Mu2e TDAQ system is that trigger processing lags the incoming events
 during the on-spill period and catches up during the off-spill period.  There is
 buffering at various places in the TDAQ system to support this.
 
-It's possible that the MI cycle might be changed to 22 BO cycles, which
-will extend the duration of the off-spill period.
+It's possible that the MI cycle might need to be increased to 22 BO cycles;
+should that happen the additional time will be allocated to a longer off-spill period.
 Also, Mu2e plans to start operations with a slightly different configuration:
-4 spills instead of 8, with each spill of a longer duration than 43.1~ms.
+4 spills instead of 8, with each spill of a longer duration than 43.1~ms;
+this mode is called ``one bunch'' running or ``Phase~1'' running.
 Neither of these materially changes the requirements for the RDM and
 will not be discussed further.
 
@@ -322,6 +323,8 @@ There are radiation safety limits on the average beam power;
 the production target will have a reduced lifetime at higher average beam power;
 the TDAQ system cannot accomodate a signficiantly higher event rate because it
 uses the off-spill period to catch up on buffered events.
+\fixme{These might not apply during one bunch running; so we could see a shorter MI cycle
+during one bunch running.}
 }
 
 \section{EventIDs, Runs and Subruns}
@@ -329,7 +332,7 @@ uses the off-spill period to catch up on buffered events.
 
 
 Mu2e uses the \art event processing framework;
-the software filter processes that run in the trigger farm will each be a separate \art process.
+the trigger filter processes that run in the trigger farm will each be a separate \art process;
 \art will also be used for offline data processing.
 In \art, events are uniquely identified by a 3 part identifier called an
 {\code art::EventID}; the parts are named run number, subrun number
@@ -341,8 +344,8 @@ The DAQ system will translate each EWT to an {\code art::EventID}
 before events are presented to the \art based software filter processes.
 The mapping of EWT to  {\code art::EventID} will be unique and
 {\code art::EventID}'s will be monotonically increasing with the time
-that the event happend.
-The EWT will be recorded as part of the \art data payload for each event.
+that the event ocurred.
+The EWT will be recorded as part of the \art data for each event.
 
 
 \fixme{ So far as I know the mechanics of mapping EWT to EventID
@@ -359,14 +362,14 @@ The current plan is that runs will typically have a duration of a few hours
 while subruns will contain an integer number of MI cycles and
 have a duration somewhere between 14 seconds and a few minutes.
 This means that each subrun will contain both on-spill and
-off-spill events.   The transition between subruns will
-happen during the off-spill period to ensure that each on-spill
-period is contained within one subrun.
+off-spill events.
+The transition between subruns will happen during the off-spill period,
+in order to ensure that each on-spill period is contained within a single subrun.
 
 These durations are informed by the following.
 Mu2e has designed a conditions management system
 in which intervals of validity (IOV) are a specified as a range of subruns;
-such a range may span runs, but need not.
+such a range may either span runs or be contained within a single run.
 Therefore subruns must be short enough to follow the most
 rapidly changing conditions.  As of this writing it seems
 likely that the upper limit for the duration of a subrun will
@@ -374,12 +377,13 @@ be driven by data handling and downstream data processing;
 that is, files should be neither too big nor too small
 and the follow-on data processing jobs should be able to process one subrun
 in, at most, a few hours.
+
 The Mu2e TDAQ has been designed so that subrun transitions will be deadtimeless
 but that data taking will pause for a few minutes at run transitions.
-On run boundaries the TDAQ system will do some house keeping,
+At each run transition the TDAQ system will do some house keeping,
 including resetting some hardware, reloading some firmware and restarting some processes.
-These are steps will cure any Single Event Upsets (SEU) in the firmware
-and will generally ensure a robust TDAQ system.
+These steps are designed to cure any Single Event Upsets (SEU) in the firmware
+and to generally ensure a robust TDAQ system.
 Therefore a run should be long enough that the deadtime
 caused by the run transition is a small fraction of the total run time
 but short enough that the resets occur frequently enough
@@ -465,9 +469,9 @@ which are primarily used for calibration and monitoring.
 \fixme{Define primary and secondary triggers. Or reference where it is defined.
   Is this language used elsewhere? If so, use the language.}
 
-Each \art trigger filter process send the events that pass the trigger over a standard ethernet
-to one of the two data logger nodes where they are received by an {\code artdaq::DataLogger}
-process, which writes the events to files in the DLLS.
+Each \art trigger filter process sends events that pass the trigger over a standard ethernet
+to one of the two data logger nodes where they are received by an {\code artdaq::DataLogger} process
+that writes the events to files in the DLLS.
 This process may be configured to write all events to a single file
 or to split the events across several files,
 for example all on-spill to one file and all off-spill events to another.
@@ -479,16 +483,16 @@ any of the {\code artdaq::BoardReader} processes, events will arrive at the
 {\code artdaq::DataLogger} out of order.  In particular, early events from subrun N+1
 may arrive at the {\code artdaq::DataLogger} before the last event from subrun N.
 
-The TDAQ design configuration has two Data Logger nodes, each running an
+The TDAQ base design has two Data Logger nodes, each running an
 {\code artdaq::DataLogger} process that will receive tracker and calorimeter events.
 The plan is to send events from alternate subruns to each of the two.
 This allows a clean separation of the event stream into non-overlapping subruns.
-Within a each subrun, however, the events will not be in order.
+Within a each subrun, however, the events may not be in order.
 
 \fixme{If we end up with short subruns, say 10 MI cycles, 14 s, will we need to stripe
-  this 3 or 4 wide to survive long processing latencies?}
+  this 3 or 4 wide to survive the longest processing latencies?}
 
-The above story is almost exactly the same correct for both on-spill and off-spill running.
+The above story is almost exactly the same for both on-spill and off-spill running.
 One difference is that the trigger filter processes test the EventMode
 and run different algorithms for the two cases;
 the other difference is that the rate of triggered events
@@ -501,56 +505,58 @@ The behaviour for other event modes will be discussed elsewhere.
 \subsection{Cosmic Ray Veto}
 \label{ssec:CRV}
 
-The first description will be for on-spill running.
-
-Data from the CRV system is read from the detectors and held in buffers in the
-readout electronics chain. \fixme{where are the buffers? ROC? FEB?}
-When the {\code artdaq::DataLogger} process receives an event, it sends a message
-to the CRV system and requests that information from that event be forwarded to
-the Data Logger node.  This information flows through 2 two of the 40 DAQ servers
-to a second {\code artdaq::DataLogger} process that is running on the Data Logger Node.
-This second {\code artdaq::DataLogger} process writes the events to files in the DLLS.
+In on-spill running,
+data from the CRV system is read from the detectors and held in buffers in the
+readout electronics chain.
+When one of the trigger filter processes described in the previous section
+decides that an event has triggered,
+it sends a message to the CRV system and requests that information from that
+event be forwarded to a Data Logger node.
+The requested information flows from the readout electronics through 2 two of the 40 DAQ servers
+to a third {\code artdaq::DataLogger} process that is running on one of the Data Logger nodes.
+This third {\code artdaq::DataLogger} process writes the events to files in the DLLS.
 Again, this process may be configured to write all events to a single file
 or to split the events across several files,
 perhaps on-spill to one file and off-spill to another.
 The details are to be determined.
 
-The end result is that for every event there will be two files in the DLLS,
-one containing the tracker and calorimeter information
-and one containing the CRV information.
+\fixme{where are the buffers? ROC? FEB?}
 
-The original design of the TDAQ was the that one {\code artdaq::DataLogger} process
+The end result is that each event in the DLLS will be split across two files, one with the
+tracker and calorimeter data and one with the CRV data.
+One of the questions to be answered when designing the RMD will be to identify
+the point in the workflow that these two event fragments will be joined into one.
+That point could be within the RMD or within Pass1.
+
+The original design of the TDAQ was the that an {\code artdaq::DataLogger} process
 would receive the tracker and calorimeter information
 and buffer that internally until the CRV information arrived.
-After that information arrived, it would then write a file containing information from all 3 subsystems.
+After that information arrived,
+the {\code artdaq::DataLogger} process would write an event containing information from all 3 subsystems.
 Recently the TDAQ team became concerned that this scheme would not work because
-the latency to fetch information from the CRV would require too large a buffer in the
-{\code artdaq::DataLogger} process.
+the tail to long processing times in the trigger filters would exceed the buffering capacity within
+the CRV readout electronics.
 Therefore this plan was replaced with the one described earlier.
 
-Current planning is that the handoff from TDAQ to RMD will be done as two files
-for each event.
-One of the questions to be answered when designing the RMD will be to identify
-the point in the work flow that these two files will be joined into one.
-That point could be within the RMD or within Pass1, the first step in the
-reconstruction chain.
 
-During off-spill runnnig there will be 3 classes of data.
-In the first case data will flow from the tracker and calorimeter into the
-DAQ Server farm in the same way as during on-spill.
-The software trigger filters will be programmed to find interesting events
-of cosmic ray origin;
-the trigger rate for these events will quite low, perhaps 10 or 20 Hz.
-These events will be forwarded to the Data Logger node, which will
-write one file with the tracker+calorimeter data and a second
-file for the CRV data for the same events.
+The light sensors for the CRV system are Silicon Photomultipliers (SiPMs).
+The CRV team have requested that, during off-spill running,
+TDAQ acquire as large a sample of SiPM noise as is practical;
+they will use this data to study the time dependence of the SiPM pedestals.
+This data is sometimes called ``SiPM noise'' or ``SiPM pedestal data''.
 
-\fixme{The second case is pre-scaled CRV pedestals.  How does this work.
-}
+Mu2e will automatically get a small sample of SiPM noise from the off-spill events
+that trigger based on tracker and calorimeter data.
+However this trigger rate will be only a few Hz, which will not yield enough SiPM noise.
+One option is for the trigger filters to pre-scale failing off-spill events at a rate that will
+produce a large enough sample of SiPM noise.
+In this case the events in the SiPM noise events will include information from the tracker and calorimeter
+(albeit in separate files).
+A second option is for an indepedent agent within the TDAQ system to trigger the SiPM noise events;
+in this case most SiPM noise events will usually not contain tracker and calorimeter information.
+The TDAQ team has not yet decided between these options.
 
-The third case is that the calibration data.  For example the Calorimeter
-subsystem has discussed flashing the crystals with laser light during this period.
-
+\fixme{The collaboration should ask for the first option if that's what they want.}
 
 \subsection{Extinction Monitor}
 \label{ssec:ExtMon}
