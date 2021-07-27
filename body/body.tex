@@ -9,7 +9,7 @@ that is produced by the online system to long term storage;
 for most data, the long term storage will be files on tape in the computer center
 but, for some data, it will be in one of the offline databases.
 Some data may also reside transiently in disk files so that
-it is readily avaialble for the follow-on data processing steps.
+it is readily available for the follow-on data processing steps.
 
 Other functions of the RDM include:
 \begin{enumerate}
@@ -64,7 +64,7 @@ This choice also allows future changes to the computing center infrastructure ov
 lifetime of Mu2e.
 
 The DPC is not part of the Mu2e Construction Project but it is part of Mu2e Operations
-and pre-Operations.
+and Pre-Operations.
 In various places, this document refers to ``Mu2e groups'', such as the TDAQ group.
 Sometimes this will mean an L2 group within the Mu2e Construction Project and at other
 times it will mean a group within the Mu2e Operations or Pre-Operations organization;
@@ -74,7 +74,7 @@ of group; when it is important, it will be stated explicitly.
 
 The phrase ``detector readout electronics'' is intended as collective noun for all elements
 up to and including the Read Out Controller (ROC) chips; it does not include
-the Data Transfer Controlers (DTC).
+the Data Transfer Controllers (DTC).
 
 
 \section{Prerequisites}
@@ -94,11 +94,11 @@ Figure~\ref{fig:blockdiagram} shows a block diagram of the major elements involv
 in the data flow from the experiment hardware to long term storage; it also shows
 some of the elements of the offline data processing.
 All elements in the left hand dot-dashed box are located in the Mu2e Hall
-and, except for the Mu2e building router, are the responsbility of the various Mu2e groups.
+and, except for the Mu2e building router, are the responsibility of the various Mu2e groups.
 All elements in the middle dot-dashed box are located in the computer center
 and are the responsibility of SCD; the internal details of the SCD-managed resources
 are not shown and the RDM will treat these resources as a interconnected, coherent whole.
-The Mu2e building router and the optical fibre that connects that router
+The Mu2e building router and the optical fiber that connects that router
 to the computer center are the responsibility of CCD;
 see Appendix~\ref{app:RouterAndNetwork} for details.
 The right hand box shows that Mu2e Offline data processing workflows
@@ -119,7 +119,7 @@ some of the other workflows are shown for completeness.
 
 Data flows from the detectors, through the DAQ system into the TDAQ computer farm.
 The five approved detectors are the Tracker (Trk), Calorimeter (Cal), the Cosmic Ray Veto system (CRV),
-the Muon Stopping Target Monitor (MSTM) and the downstream Extintion Monitor (ExtMon).
+the Muon Stopping Target Monitor (MSTM) and the downstream Extinction Monitor (ExtMon).
 A sixth detector has been proposed, the Production Target Scanning Monitor (PTSM),
 which is drawn with a dotted box;
 it's primary use is to send rapid feedback to the accelerator control room
@@ -129,7 +129,7 @@ a driver for the RDM.
 
 A cartoon picture of the TDAQ computer farm is that it has 40 DAQ Server nodes
 that talk to the detectors, build events and run trigger algorithms on those events.
-The design is a deadtimeless streaming DAQ system that has no hardware trigger;
+The design is a dead-timeless streaming DAQ system that has no hardware trigger;
 it reads every event from the detector hardware and sends all events to software filters
 that run on the DAQ server nodes;
 the software makes the trigger decision.
@@ -137,7 +137,7 @@ The present design is 20 software filter processes on each of the 40 DAQ server 
 Events that pass the trigger are forwarded to Data Logger nodes that will write the events
 to files in the Data Logger Local Storage (DLLS), a RAID 0 hybrid SSD/HDD array on the bus of the Data Logger nodes.
 Appendix~\ref{app:DataLoggerLocalStorage} has the specs for and a discussion about the DLLS.
-In earlier DPC related talks and documents the DLLS  was refered to as the ``48 hour disk buffer''.
+In earlier DPC related talks and documents the DLLS  was referred to as the ``48 hour disk buffer''.
 In addition to the triggered events, a variety of prescaled, untriggered events will pass the
 trigger and be handled the same as events that passed the trigger.
 Finally, there will be special data streams for calibrations.
@@ -167,7 +167,7 @@ Purchasing and maintaining the gateway node is the responsibility of the TDAQ gr
 When the Mu2e Hall was built and provisioned, CCD personnel installed a dual router
 and connected it to the lab optical fiber network.
 RDM will move data from the Mu2e Hall
-to the computer center using this router and the lab optical fibre network.
+to the computer center using this router and the lab optical fiber network.
 The router is standard item that CCD uses in many places around the lab; it stocks spares.
 CCD is responsible for the maintenance of both the router and the network.
 See Appendix~\ref{app:RouterAndNetwork} for additional details of the arrangement with with CCD,
@@ -179,7 +179,7 @@ by SCD will be dCache and ENSTORE.
 At this writing Mu2e is using SAM as the file catalog system for files produced
 by simulations, tests stands and Vertical Slice Tests (VST).
 SCD plans to phase out SAM and replace it with a more modern system, RUCIO;
-RUCIO is already in use by CMS and by DUNE for proto-DUNE Single Phase data.
+RUCIO is already in use by CMS and by DUNE for Proto-DUNE Single Phase data.
 It is likely that SAM will be phased out during the lifetime of Mu2e.
 One of the questions to ask in the design of the RDM is
 when to make the transition to RUCIO.
@@ -193,7 +193,7 @@ The heart of the TDAQ system is the Clock Fan-Out (CFO) that delivers
 configuration information and timing signals to all elements of the DAQ.
 Just prior to the start of each event, the CFO distributes a configuration packet
 that describes the upcoming event;
-this includes two elements, the Event Window Tag (EWT) and the EventMode, which will be discused below.
+this includes two elements, the Event Window Tag (EWT) and the EventMode, which will be discussed below.
 
 \fixme{Ask Ryan what the right name for configuration packet is.}
 
@@ -210,7 +210,7 @@ The event builders use the EWT has the key for event building.
 
 The Mu2e detector can operate in several modes, two of which,
 on-spill and off-spill, will be discussed in the next section.
-In addtion there will be several calibration modes.
+In addition there will be several calibration modes.
 All elements of the TDAQ have pre-programmed operations defined for each mode.
 When the CFO creates the configuration packet for each event,
 it sets a bit field called the EventMode (EM)
@@ -237,7 +237,7 @@ from the Delivery Ring (DR) to the Mu2e production target;
 within each spill, proton pulses arrive at Mu2e every 1695~ns;
 the duration of a spill is nominally 25,438 pulses, about 43.1~ms.
 There is a gap of about 5~ms between spills.
-The eigth spill is followed by a period of about 1020~ms,
+The eighth spill is followed by a period of about 1020~ms,
 during which no proton pulses arrive at Mu2e;
 during this time, beam is delivered to NOvA
 and beam is prepared for the next 8 spills to Mu2e.
@@ -246,8 +246,8 @@ Then the cycle repeats.
 \begin{figure}[tbp]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/ProtonBeamLongitudinalStructure2019-01-10_page6.pdf}
-\caption[MacroStructure of the Proton Beam at Mu2e]{
-  MacroStructure of the proton beam at Mu2e, taken from page~6 of
+\caption[Macro Structure of the Proton Beam at Mu2e]{
+  Macro Structure of the proton beam at Mu2e, taken from page~6 of
   the file ``Proton Beam Longitudinal Structure (.pdf)'' from
   Reference~\protect{\cite{beamTiming}}.  The figure is described in the text.}
 \label{fig:beamMacroStructure}
@@ -284,7 +284,7 @@ Table~\ref{tab:timescales} summarizes the time scales within one MI cycle.
 In the on-spill configuration, one event will have  a duration of 1695~ns
 and it records the information associated with one proton pulse.
 The trigger will be configured to select interesting events associated with the proton pulse
-and to pre-scale non-triggering events in order to study the performance of the trigger.
+and to prescale non-triggering events in order to study the performance of the trigger.
 In the off-spill configuration, one event will have a duration of 100~$\mu$s.
 During the off-spill period, Mu2e will trigger on cosmic rays that
 pass through the tracker and/or the calorimeter; it will also collect
@@ -293,7 +293,7 @@ may also take place during the off-spill period.
 
 Mu2e expects that the accelerator super-cycle will consist of a
 sequence of many of the above MI cycles,
-with an occaisional other cycle mixed in.
+with an occasional other cycle mixed in.
 For example, when MTEST is active, there is usually beam delivered to MTEST about once per minute.
 When this occurs, Mu2e will have an extended period of off-spill running.
 
@@ -327,7 +327,7 @@ There are several technical limitations that prevent Mu2e from reducing the off-
 in order to increase the duty factor.\footnote{
 There are radiation safety limits on the average beam power;
 the production target will have a reduced lifetime at higher average beam power;
-the TDAQ system cannot accomodate a signficiantly higher event rate because it
+the TDAQ system cannot accommodate a significantly higher event rate because it
 uses the off-spill period to catch up on buffered events.
 \fixme{These might not apply during one bunch running; so we could see a shorter MI cycle
 during one bunch running.}
@@ -350,14 +350,14 @@ The DAQ system will translate each EWT to an {\code art::EventID}
 before events are presented to the \art based software filter processes.
 The mapping of EWT to  {\code art::EventID} will be unique and
 {\code art::EventID}'s will be monotonically increasing with the time
-that the event ocurred.
+that the event occurred.
 The EWT will be recorded as part of the \art data for each event.
 
 
 \fixme{ So far as I know the mechanics of mapping EWT to EventID
   is only captured in an email thread.
   Is there a real reference?
-  If not, who will write it up in a referenceable way?
+  If not, who will write it up in a reference-able way?
 }
 
 The meaning of run and subrun are defined by Mu2e.
@@ -390,7 +390,7 @@ At each run transition the TDAQ system will do some house keeping,
 including resetting some hardware, reloading some firmware and restarting some processes.
 These steps are designed to cure any Single Event Upsets (SEU) in the firmware
 and to generally ensure a robust TDAQ system.
-Therefore a run should be long enough that the deadtime
+Therefore a run should be long enough that the dead time
 caused by the run transition is a small fraction of the total run time
 but short enough that the resets occur frequently enough
 to keep the system robust.
@@ -425,17 +425,17 @@ intended to convey enough information to design the RMD and no more.
 \label{ssec:TrkAndCal}
 
 Data flows from the tracker and calorimeter into FPGAs mounted the PCI-e bus of 36 of 40 DAQ servers;
-these FPGAs are called Data Transfer Controllers (DTCs).
+these FPGAs are called Data Transfer Controllers (DTC).
 All DTCs on these 36 DAQ servers communicate with each other over a high speed switch
 and perform event building.
-Event building uses only resources from the DTCs and is indepdent of operations on the host DAQ servers.
+Event building uses only resources from the DTCs and is independent of operations on the host DAQ servers.
 The end product of event building is that each DTC contains buffers of complete events held in its own memory;
 each event is complete in the sense that it contains all of the data from the tracker and calorimeter
 but it does not contain any data from other subsystems.
 Every event is present in exactly one buffer and each DTC sees only a small subset of the full event stream.
 
 Once a DTC has a full buffer of events it will transfer that buffer to its host DAQ server;
-it does so by transfering it to an {\code artdaq::BoardReader} process.  On most of the
+it does so by transferring it to an {\code artdaq::BoardReader} process.  On most of the
 36 DAQ severs there are two DTCs and two {\code artdaq::BoardReader} processes;
 on the remaining servers there is one DTC and one {\code artdaq::BoardReader} process.
 
@@ -458,18 +458,18 @@ Within one trigger filter process there is no guarantee that events within one s
 increasing order of {\code art::EventID}.
 
 \fixme{Is there a guarantee that, within a single process all events from subrun n will be seen before
-any events from subrun n+1?  If so, for personal interest, how is this guarantteed?}
+any events from subrun n+1?  If so, for personal interest, how is this guaranteed?}
 
 The trigger filters process the events and make a trigger decision on
 each event.
 The current design is that about 1 in 400 events will pass the trigger;
 this includes all events that pass the primary triggers,
-pre-scaled events that pass the secondary triggers,
-pre-scaled events that fail at selected places during trigger processing,
+prescaled events that pass the secondary triggers,
+prescaled events that fail at selected places during trigger processing,
 and random triggers.
 Throughout this document the phrase ``passes the trigger'', without additional modifiers,
 refers to all of the above, including the prescaled events and random triggers.
-The trigger rate is dominated by pre-scaled secondary triggers,
+The trigger rate is dominated by prescaled secondary triggers,
 which are primarily used for calibration and monitoring.
 
 \fixme{Define primary and secondary triggers. Or reference where it is defined.
@@ -507,7 +507,7 @@ second, the rate of triggered events
 and data volume per triggered event will be much smaller in off-spill events than in on-spill events.
 
 
-The behaviour for other event modes will be discussed elsewhere.
+The behavior for other event modes will be discussed elsewhere.
 \fixme{Add references}
 
 \subsection{Cosmic Ray Veto}
@@ -550,7 +550,7 @@ the CRV readout electronics.
 Therefore this plan was replaced with the two file solution.
 
 
-The light sensors for the CRV system are Silicon Photomultipliers (SiPMs).
+The light sensors for the CRV system are Silicon Photo multipliers (SiPM).
 The CRV team have requested that, during off-spill running,
 TDAQ acquire as large a sample of SiPM noise as is practical;
 they will use this data to study the time dependence of the SiPM pedestals.
@@ -559,11 +559,11 @@ This data is sometimes called ``SiPM noise data'' or ``SiPM pedestal data''.
 Mu2e will automatically get a small sample of SiPM noise from the off-spill events
 that trigger based on tracker and calorimeter data.
 However this trigger rate will be only a few Hz, which will not yield enough SiPM noise.
-One option is for the trigger filters to pre-scale off-spill events that fail the trigger
+One option is for the trigger filters to prescale off-spill events that fail the trigger
 and to do so at a rate that will produce a large enough sample of SiPM noise.
 In this case SiPM noise events will include information from the tracker and calorimeter as well,
 albeit in separate files.
-A second option is for an indepedent agent within the TDAQ system to trigger the SiPM noise events;
+A second option is for an independent agent within the TDAQ system to trigger the SiPM noise events;
 in this case most SiPM noise events will usually not contain tracker and calorimeter information.
 The TDAQ team has not yet decided between these options.
 
@@ -577,8 +577,8 @@ That server will receive the data and write it to one or more files in
 the DLLS.  This server will also have trigger filter processes that receive
 data from buffers on the 36 servers that talk to the tracker and calorimeter.
 
-\fixme{confirm that there are no {\code artdaq::DataLogger} proccesses involved and
-that the DLLS is nfs mounted to this server.}
+\fixme{confirm that there are no {\code artdaq::DataLogger} processes involved and
+that the DLLS is NSF mounted to this server.}
 
 \subsection{Muon Stopping Target Monitor}
 \label{ssec:ExtMon}
@@ -601,11 +601,11 @@ and MSTM.
 
 This chapter defines the ideas of ``data streams'' and ``file streams''.
 It enumerates the data streams that are anticipated at this time
-and it presents a strawman for how these may be grouped into files.
+and it presents a straw man for how these may be grouped into files.
 
-\fixme{Should I use the word ``dataset'' instead of ``file stream''?
+\fixme{Should I use the word ``data set'' instead of ``file stream''?
   I am using a distinct word for now since I want to reserve the word
-  of dataset for something that is defined using SAM.  Are these
+  of data set for something that is defined using SAM.  Are these
   two ideas identical?
 }
 
@@ -615,7 +615,7 @@ For example the on-spill and off-spill events are distinct data streams.
 The on-spill events will have many trigger lines; one might consider each trigger
 line it's own data stream or one might define groups of trigger lines as a data stream.
 Another example: the off-spill events will include some events that triggered based on
-the tracker or calorimter and they will also include SiPM noise events.
+the tracker or calorimeter and they will also include SiPM noise events.
 These are distinct data streams.
 
 A ``file stream'' is a series of files that contain events from one or more data streams.
@@ -648,7 +648,7 @@ It is kept here to illustrate the use of the  ISDRAFT macro.
 \chapter{Requirements}
 
 This chapter lists requirements for the RDM system.
-The requirements are dervived from the above firehose of information.
+The requirements are derived from the above fire hose of information.
 
 \begin{enumerate}
   \item Move data in a timely fashion; goal is that Pass1 will be complete within 6 hours of file close 95\% of the time.
@@ -676,7 +676,7 @@ A list of questions that should be addressed in the design of the RDM:
 \item Work with TDAQ to understand the constraints that drive the choices of how to
   map data streams to file streams.
   \begin{enumerate}
-    \item a separate filestream for the intensity stream.
+    \item a separate file stream for the intensity stream.
     \item split on-spill and off-spill to separate file streams
     \item split off-spill into triggered and pedestal.
   \end{enumerate}
@@ -783,7 +783,7 @@ from memory at the matching endSubRun transition.
 When \art is not configured for atomic subruns it does not drop these data products from
 memory at the matching endSubRun transition; the reason is that 
 
-On the otherhand, when art is configured for non-atomic subruns
+On the other hand, when art is configured for non-atomic subruns
 
 When \art is configured for non atomic subruns there is an extra memory cost;
 for sparse skims this can dominate the memory usage of the process.
@@ -836,7 +836,7 @@ for sparse skims it can be dominant.
 
 
 There is a second consideration about atomic subruns:
-for sparse skims there is signficant memory savings if subruns are atomic.
+for sparse skims there is significant memory savings if subruns are atomic.
 While the RDM will not see sparse skims, the people developing it should know the big picture.
 
 
