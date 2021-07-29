@@ -692,6 +692,9 @@ This chapter lists requirements for the RDM system.
   \item When dCache is not available, data will pile up in the DLLS.  When service is restored prioritize data handling of the backlog
     so that the highest priority files are copied first.
   \end{enumerate}
+\item Most data sets should be written to a file family that makes two copies on tape in physically separate locations.
+  There may be some data sets for which a single copy is adequate.
+  Work with the collaboration to decide which data set falls into which category.
 \item Update the file catalog to provide meta-data and locations for all new files.
 \item Copy/mirror information in the various online databases to the appropriate offline databases.
   \begin{enumerate}
@@ -703,40 +706,60 @@ This chapter lists requirements for the RDM system.
 \item Manage the free space in the DLLS.  This is adapted from~\cite{OnlineMonitoring}.
   \begin{enumerate}
    \item Ensure that there is adequate free space to write N more hours of data (maybe 6 hours?).
-   \item Keep track of which files are delete-able because they are already on tape.
+   \item Keep track of which files are deletable because they are already on tape or otherwise have redundant copies in the offline world.
    \item Periodically delete files to ensure a)
    \item There needs to be a way to keep some files on disk in the online system for an extended period so that
-     people can do emergency studies on them using online resources. One way is to provide
+     people can do studies on them using online resources. One way is to provide
      a method to pin files in the DLLS.  An alternate solution is to carve out a different piece of disk
-     space for this use.  In any case this solution must not disrupt data taking.
+     space for this use.
+     What ever solution is chosen, it must not disrupt data taking.
    \item Tell online to stop data taking if the disk is full.
   \end{enumerate}
+\item If we are using persistent dCache, then the RDM must also manage free space in persistent dCache.
 \item Provide a way to control and monitor all parts of the RDM; the monitoring system should raise warnings or alarms when appropriate.
 \item If Mu2e needs to split/join or otherwise reshape the data from the DLLS before it is written to tape, do this work.
   This task will be performed using offline resources because there are no resources in the online world to do it.
 \end{enumerate}
+
+Some comments about the requirements.
+
+Why 6b) and 6c)?
+Why not just delete files from the DLLS as soon as the are on tape?
+The use case for this is commissioning and debugging.
+There will be situations in which we have data in the DLLS and have stopped taking data
+until an issue is resolved.
+In this case there are cycles available on the DAQ servers to study the issue.
+This is a more powerful resource than our interactive GPVM nodes and
+it will have faster turn around than running grid jobs.
+It is also not subject to scheduled maintenance at inconvenient times.
+It seems prudent to keep the maximum amount of data available in the DLLS so that
+it is available for understanding emergencies.
+
 
 \chapter{Questions}
 
 A list of questions that should be addressed in the design of the RDM:
 
 \begin{enumerate}
-\item Work with TDAQ to define a policy for locating files within the DLLS.  Something like a hash based on the SAM file
-  name so that it's predictable and scriptable.
-\item Revisit the question of keeping N hours of free space in the DLLS vs aggressively deleting files.
+\item What does it mean for a file to be ``on tape'' and therefore deletable?
+  For example, if it's in both persistent and tape backed dCache, but not yet on tape, is that good enough?
+\item Work with TDAQ to define a policy for locating files within the DLLS.
+\item Revisit the question of keeping N hours of free space in the DLLS vs aggressively deleting files.  If
+  we decide to change then we need to update the requirements.
 \item Update data size estimates;  is the DLLS sized large enough for 48 hours of data?
-  If not, do we ask for more space or do we live with a shorter maximum buffering time?
+  If not, do we ask TDAQ to buy more space or do we live with a shorter maximum buffering time?
+  We do not need more space until we are commissioning with beam so this could be operations money, not project money.
 \item My instinct is that we don't want a system that uses polling to discover files that need to be moved to tape
   and files that are on tape.
   Think about recovering from from a long network or dCache downtime.  Will it scale?
   Remember that we need to discover pairs of files that need to move together.
-\item Start by sticking with SAM and move to RUCIO later?  Or move to RUCIO now?
-  How does this decision interact with requirements for ongoing simulation, VST
-  and test stand work?
+\item Do we start using and move to RUCIO later?  Or move to RUCIO now?
+  How does this decision interact with requirements for ongoing simulation, VST and test stand work?
+  Can both SAM and RUCIO coexist?
 \item Work with TDAQ to understand the constraints that drive the choices of how to
   map data streams to file streams.
   \begin{enumerate}
-    \item a separate file stream for the intensity stream.
+    \item A separate file stream for the intensity stream.
     \item split on-spill and off-spill to separate file streams
     \item split off-spill into triggered and pedestal.
   \end{enumerate}
