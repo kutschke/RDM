@@ -456,20 +456,19 @@ increasing order of {\code art::EventID}.
   but I don't see a requirement that they be in increasing order.
 }
 
-The trigger filters process the events and make a trigger decision on
-each event.
+The trigger filters make a trigger decision on each event.
 The current design is that about 1 in 400 events will pass the trigger;
 this includes all events that pass the primary triggers,
-prescaled events that pass the secondary triggers,
-prescaled events that fail at selected places during trigger processing,
-and random triggers.
+prescaled events that pass the support triggers,
+and prescaled events that fail at selected places during trigger processing;
+random triggers are included in the last category.
 Throughout this document the phrase ``passes the trigger'', without additional modifiers,
-refers to all of the above, including the prescaled events and random triggers.
-The trigger rate is dominated by prescaled secondary triggers,
-which are primarily used for calibration and monitoring.
+refers to all of the above.
+The trigger rate is dominated by prescaled support triggers,
+which are designed to select events for calibration and monitoring.
+Details of the software trigger system, as of May 2021,
+are available in reference~\cite{TriggerSU2020}.
 
-\fixme{Define primary and secondary triggers. Or reference where it is defined.
-  Is this language used elsewhere? If so, use the language.}
 
 Each \art trigger filter process sends events that pass the trigger over a standard ethernet
 to one of the two data logger nodes where they are received by an {\code artdaq::DataLogger} process
