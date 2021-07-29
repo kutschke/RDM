@@ -1,6 +1,8 @@
 \chapter{Introduction}
-
 \label{ch:intro}
+
+\section{Overview}
+\label{sec:overview}
 
 The Mu2e Raw Data Mover (RDM) System is an element of Mu2e Data Processing
 and Computing (DPC)~\cite{DPC}, an L2 project within Mu2e Experiment Operations Plan~\cite{PEOP}.
@@ -8,16 +10,16 @@ Its purpose is to move data
 that is produced by the online system to long term storage;
 for most data, the long term storage will be files on tape in the computer center
 but, for some data, it will be in one of the offline databases.
-Some data may also reside transiently in disk files so that
+Some data may also reside transiently in disk files in the computer center so that
 it is readily available for the follow-on data processing steps.
 
 Other functions of the RDM include:
 \begin{enumerate}
 \item Updating the file catalog to include meta-data and file location(s).
-\item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream processing.
+\item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream data processing.
 \item Managing the free space in the online disk buffer
 \item Copy/mirror subsets of the online databases to the offline databases
-\item Move miscellaneous other data, such as the output of the online Data Quality Monitoring (DQM) system, to long term storage.
+\item Copy miscellaneous other files, such as the output of the online Data Quality Monitoring (DQM) system, to long term storage.
 \end{enumerate}
 
 The current plan is that the offline data processing workflows will be driven by updates to the file catalog;
@@ -32,10 +34,9 @@ so the RDM does not need other hooks into those workflows.
 The main body of this document will describe a view of the
 Mu2e Trigger and Data Acquisition system (TDAQ) as seen from the RDM perspective.
 The cartoon picture is that TDAQ writes files to a disk buffer and RDM drains the disk buffer.
-However, there are about 20 logical data streams, some tightly coupled to each
+However, there are about 30 data streams, some tightly coupled to each
 other, some loosely coupled to the others and others independent of the others.
-Understanding the relationships among the data streams and their implications
-for downstream processing are the starting point for designing the RDM.
+The data streams will be grouped into a smaller number of files.
 
 This document includes additional information that is not written down concisely
 in other places and is needed either to frame the description of the data streams
@@ -52,10 +53,12 @@ see Appendix~\ref{app:RouterAndNetwork} for details.
 
 In early planning for the Mu2e DPC, what is now called the RDM was called the Data Logging System.
 However that name is too close to two related concepts in the online world:
-the {\code artdaq::DataLogger} processes that run on the Data Logger nodes at the end of the TDAQ
-processing chain.  The name was changed to RDM to avoid confusion with these other uses of Data Logger.
+the {\code artdaq::DataLogger} processes that run on the Data Logger nodes.
+To avoid confusion with these other uses of ``Data Logger'',
+the name of this task was changed to RDM.
 
 \section{Conventions Used in this Document}
+\label{sec:conventions}
 
 In this document the word ``computer center'' is used as a collective noun for the
 Feynman Computing Center (FCC) and the Grid Computing Center (GCC).
@@ -76,15 +79,34 @@ The phrase ``detector readout electronics'' is intended as collective noun for a
 up to and including the Read Out Controller (ROC) chips; it does not include
 the Data Transfer Controllers (DTC).
 
+This document groups triggers into primary triggers and support triggers.
+These ideas are defined in reference~\cite{TriggerSU2020}.
 
-\section{Prerequisites}
 
-\fixme{Do I need this section.  What goes here: \art, \artdaq, run and subrun products and run
-  and subrun fragments.
-}
 
-\chapter{Background Information}
-\label{chap:BackgroundInfo}
+\section{Assumed Knowledge}
+
+This document assumes that the reader has basic familiarity with the \art event processing framework~\cite{ARTWORDPRESS}, including
+
+\begin{enumerate}
+\item The ideas of runs and subruns.
+\item {\code art::EventID}
+\item Event data products.
+\item Run and subrun data products.
+\item Run and subrun data product fragments.
+\item The notion of an atomic subrun, when all events within a subrun are contained within a single file.
+      See appendix~\fixme{reference} for a subtle variant of this idea.
+\end{enumerate}
+
+It is assumed that the reader knows the names of the following two packages of and their role in Mu2e: OTS DAQ and \artdaq.
+The configuration and run-time control of the TDAQ system is managed using a software package called
+Off The Shelf DAQ (OTS DAQ)~\cite{MU2EOTSDAQ};
+the OTS DAQ configuration is stored in a database sometimes called ``OTS database'' and sometimes called the ``Mongo database''.
+The software used to move data and to control processes on the DAQ Server and DAQ Data Logger nodes is called \artdaq~\cite{MU2EARTDAQ}.
+Both OTS DAQ and \artdaq are Fermilab developed packages used by Mu2e and other experiments.
+
+\chapter{Selected Details about the TDAQ}
+\label{chap:SelectedDetails}
 This Chapter describes the view of the TDAQ and the computer center as seen by the RDM.
 
 \section{Block Diagram}
@@ -102,8 +124,9 @@ The Mu2e building router and the optical fiber that connects that router
 to the computer center are the responsibility of CCD;
 see Appendix~\ref{app:RouterAndNetwork} for details.
 The right hand box shows that Mu2e Offline data processing workflows
-will read data from storage in the computer center
-and will write data to storage computer center.
+will read data from storage in the computer center,
+process it,
+and write data back to storage computer center.
 The first workflow in this chain is Pass1, which will run soon after new files
 are registered in the file catalog;
 some of the other workflows are shown for completeness.
@@ -168,9 +191,10 @@ When the Mu2e Hall was built and provisioned, CCD personnel installed a dual rou
 and connected it to the lab optical fiber network.
 RDM will move data from the Mu2e Hall
 to the computer center using this router and the lab optical fiber network.
-The router is standard item that CCD uses in many places around the lab; it stocks spares.
+The router is standard item that CCD uses in many places and it stocks spares.
 CCD is responsible for the maintenance of both the router and the network.
-See Appendix~\ref{app:RouterAndNetwork} for additional details of the arrangement with with CCD,
+See Appendix~\ref{app:RouterAndNetwork} for the
+specs for the router and details of the arrangement with with CCD,
 including costs that must be paid by Mu2e to CCD for this service.
 
 
@@ -192,12 +216,12 @@ configuration information and timing signals to all elements of the DAQ.
 The inputs to the CFO are the RF0 signal from the accelerator
 and a Run Plan that comes from Mu2e DAQ configuration.
 Just prior to the start of each event,
-the CFO distributes a 16-byte heartbeat packet that describes the upcoming event\cite{PacketProtocols};
-among other this contains the EventWindowTag (EWT) and EventMode fields,
+the CFO distributes a 16-byte heartbeat packet that describes the upcoming event~\cite{PacketProtocols};
+among other things, this contains the EventWindowTag (EWT) and EventMode fields,
 both of which will be discussed below.
 
 An event window is defined as time interval during which the DAQ collects data for one event.
-Each event window is identified by a 48 bit field in the heartbeat packet, called
+Each event window is identified by a 48 bit integer field in the heartbeat packet, called
 the Event Window Tag (EWT);
 the EWT will be monotonically increasing throughout the Mu2e experiment and
 enough bits have been reserved for it to produce unique identifiers for all
@@ -205,7 +229,7 @@ events over a many-year run.
 The CFO is responsible for incrementing the EWT and putting the correct value into
 the heartbeat packet for each event.
 The detector readout electronics label information from their subsystem with the EWT.
-The event builders use the EWT has the key for event building.
+The event builders use the EWT as the key for event building.
 
 The Mu2e detector can operate in many modes, two of which,
 on-spill and off-spill, will be discussed in the next section.
@@ -220,7 +244,7 @@ that tells the TDAQ system in which mode to operate for the upcoming event.
 This section defines the concepts of on-spill, off-spill and near-spill running.
 
 It is expected that, for most of it's running time,
-Mu2e will share parts of the Fermilab accelerator complex with a neutrino experiment,
+Mu2e will the Fermilab Main Injector with a neutrino experiment,
 first, with NOvA and, later, with DUNE.
 To keep this document easier to read it will discuss sharing with NOvA but sharing with DUNE is implied.
 The change from NOvA to DUNE may change details
@@ -254,7 +278,6 @@ Then the cycle repeats.
 
 During the spills, Mu2e is running in the on-spill configuration.
 During the 1020~ms no-beam period, Mu2e is running in the off-spill configuration.
-These two configurations are discussed below.
 It has not yet been decided if the 5~ms periods between spills will
 be in the on-spill or off-spill configuration
 but that does not materially affect the design of the RDM.
@@ -314,23 +337,26 @@ buffering at various places in the TDAQ system to support this.
 
 It's possible that the MI cycle might need to be increased to 22 BO cycles;
 should that happen the additional time will be allocated to a longer off-spill period.
-Also, Mu2e plans to start operations with a slightly different configuration:
-4 spills instead of 8, with each spill of a longer duration than 43.1~ms;
-this mode is called ``one bunch'' running or ``Phase~1'' running.
-Neither of these materially changes the requirements for the RDM and
-will not be discussed further.
+This does not significantly change the requirements for the RDM.
+
+Mu2e plans to start operations with a slightly different configuration:
+4 spills instead of 8, where each spill has a longer duration than 43.1~ms;
+this mode is called ``one bunch'' running or ``Phase~1'' running;
+the 8 spill configuration is called ``two bunch'' runnnig or ``Phase~2'' running.
+The data volume produced in one bunch running will be about 60\% of that produced
+in two bunch running; otherwise the requirements for the two are the same.
 
 There will be times when Mu2e is taking data but NOvA is not.
 In such times, the base plan is that Mu2e will continue to take data using the same MI cycle of 21 BO cycles.
 There are several technical limitations that prevent Mu2e from reducing the off-spill period
-in order to increase the duty factor.\footnote{
-There are radiation safety limits on the average beam power;
+in order to increase the duty factor:
+there are radiation safety limits on the average beam power;
 the production target will have a reduced lifetime at higher average beam power;
 the TDAQ system cannot accommodate a significantly higher event rate because it
 uses the off-spill period to catch up on buffered events.
-\fixme{These might not apply during one bunch running; so we could see a shorter MI cycle
-during one bunch running.}
-}
+
+\fixme{Is the following correct: these limitations have some headroom during one bunch running;
+  so we could see a shorter MI cycle during one bunch running.}
 
 \section{EventIDs, Runs and Subruns}
 \label{sec:TagsIDsRunsSubRuns}
@@ -361,8 +387,8 @@ while subruns will contain an integer number of MI cycles and
 have a duration somewhere between 14 seconds and a few minutes.
 This means that each subrun will contain both on-spill and
 off-spill events.
-The transition between subruns will happen during the off-spill period,
-in order to ensure that each on-spill period is contained within a single subrun.
+The transition between subruns will happen during the off-spill period;
+this ensures that each on-spill period is contained within a single subrun.
 
 These durations are informed by the following.
 Mu2e has designed a conditions management system
@@ -371,10 +397,9 @@ such a range may either span runs or be contained within a single run.
 Therefore subruns must be short enough to follow the most
 rapidly changing conditions.  As of this writing it seems
 likely that the upper limit for the duration of a subrun will
-be driven by data handling and downstream data processing;
-that is, files should be neither too big nor too small
-and  Pass1 jobs should be able to process one subrun
-in, at most, a few hours.
+be driven by considerations of data handling and downstream data processing;
+that is, files should be neither too big nor too small for efficient data handling
+and Pass1 jobs should be able to process one subrun in, at most, a few hours.
 
 The Mu2e TDAQ has been designed so that subrun transitions will be deadtimeless
 but that data taking will pause for a few minutes at run transitions.
@@ -388,8 +413,9 @@ but short enough that the resets occur frequently enough
 to keep the system robust.
 
 Anomalies that occur during data taking will cause some runs
-and subruns to be cut short.  Therefore the RDM must sometimes
-expect smaller files, even empty files.
+and subruns to be cut short.
+Therefore the RDM must expect some files that are smaller than normal
+and even empty files.
 
 
 \section{Organization of Data by Detector Subsystem }
@@ -420,7 +446,7 @@ Data flows from the tracker and calorimeter into FPGAs mounted the PCIe bus of 3
 these FPGAs are called Data Transfer Controllers (DTC).
 All DTCs on these 36 DAQ servers communicate with each other over a high speed switch
 and perform event building.
-Event building uses only resources from the DTCs and is independent of operations on the host DAQ servers.
+Event building uses only resources on the DTCs and is independent of operations on the host DAQ servers.
 The end product of event building is that each DTC contains buffers of complete events held in its own memory;
 each event is complete in the sense that it contains all of the data from the tracker and calorimeter
 but it does not contain any data from other subsystems.
@@ -431,7 +457,7 @@ it does so by transferring it to an {\code artdaq::BoardReader} process.  On mos
 36 DAQ severs there are two DTCs and two {\code artdaq::BoardReader} processes;
 on the remaining servers there is one DTC and one {\code artdaq::BoardReader} process.
 
-The 20 trigger filter \art processes on each DAQ Server are controlled by a process
+The trigger filter processes on each DAQ Server are controlled by a process
 called an {\code artdaq::EventBuilder}.
 This name is historical and reflects the function that it had for earlier experiments in which \artdaq was developed.
 For Mu2e, event building will be done in the DTCs and the function of an
@@ -445,7 +471,7 @@ on other DAQ servers.
 This allows all 40 DAQ servers to run trigger filter processes even though only 36 of the 40 servers
 communicate with the tracker and calorimeter.
 
-The end result is that each event will be seen by exactly one of the 800 trigger filter processes.
+The end result is that each event will be seen by exactly one of the trigger filter processes.
 Within one trigger filter process there is no guarantee that events within one subrun will arrive in
 increasing order of {\code art::EventID}.
 
