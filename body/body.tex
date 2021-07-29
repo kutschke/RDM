@@ -178,42 +178,41 @@ For the foreseeable future Mu2e expects that the disk and tape services provided
 by SCD will be dCache and ENSTORE.
 At this writing Mu2e is using SAM as the file catalog system for files produced
 by simulations, tests stands and Vertical Slice Tests (VST).
-SCD plans to phase out SAM and replace it with a more modern system, RUCIO;
+SCD plans to phase out SAM and replace it with a more modern system, RUCIO\cite{RUCIOHome};
 RUCIO is already in use by CMS and by DUNE for Proto-DUNE Single Phase data.
 It is likely that SAM will be phased out during the lifetime of Mu2e.
 One of the questions to ask in the design of the RDM is
 when to make the transition to RUCIO.
 
-\fixme{RUCIO reference};
-
 \section{The EventWindowTag and the EventMode}
 \label{sec:EWTagAndEventMode}
 
-The heart of the TDAQ system is the Clock Fan-Out (CFO) that delivers
+The heart of the TDAQ system is the Command Fan-Out (CFO) that delivers
 configuration information and timing signals to all elements of the DAQ.
-Just prior to the start of each event, the CFO distributes a configuration packet
-that describes the upcoming event;
-this includes two elements, the Event Window Tag (EWT) and the EventMode, which will be discussed below.
-
-\fixme{Ask Ryan what the right name for configuration packet is.}
+The inputs to the CFO are the RF0 signal from the accelerator
+and a Run Plan that comes from Mu2e DAQ configuration.
+Just prior to the start of each event,
+the CFO distributes a 16-byte heartbeat packet that describes the upcoming event\cite{PacketProtocols};
+among other this contains the EventWindowTag (EWT) and EventMode fields,
+both of which will be discussed below.
 
 An event window is defined as time interval during which the DAQ collects data for one event.
-Each event window is identified by a 48 bit field in the configuration packet, called
+Each event window is identified by a 48 bit field in the heartbeat packet, called
 the Event Window Tag (EWT);
 the EWT will be monotonically increasing throughout the Mu2e experiment and
 enough bits have been reserved for it to produce unique identifiers for all
 events over a many-year run.
 The CFO is responsible for incrementing the EWT and putting the correct value into
-the configuration packet for each event.
+the heartbeat packet for each event.
 The detector readout electronics label information from their subsystem with the EWT.
 The event builders use the EWT has the key for event building.
 
-The Mu2e detector can operate in several modes, two of which,
+The Mu2e detector can operate in many modes, two of which,
 on-spill and off-spill, will be discussed in the next section.
-In addition there will be several calibration modes.
+In addition there will be many calibration modes.
 All elements of the TDAQ have pre-programmed operations defined for each mode.
-When the CFO creates the configuration packet for each event,
-it sets a bit field called the EventMode (EM)
+When the CFO creates the heartbeat packet for each event,
+it sets a 4 byte EventMode (EM) field
 that tells the TDAQ system in which mode to operate for the upcoming event.
 
 \section{On-Spill, Off-Spill and Near-Spill}
@@ -347,18 +346,11 @@ and event number.
 Within the DAQ system, event fragments and fully assembled events
 are identified by the Event Window Tag (EWT).
 The DAQ system will translate each EWT to an {\code art::EventID}
-before events are presented to the \art based software filter processes.
+before events are presented to the \art based software filter processes~\cite{EventLabels}.
 The mapping of EWT to  {\code art::EventID} will be unique and
 {\code art::EventID}'s will be monotonically increasing with the time
 that the event occurred.
 The EWT will be recorded as part of the \art data for each event.
-
-
-\fixme{ So far as I know the mechanics of mapping EWT to EventID
-  is only captured in an email thread.
-  Is there a real reference?
-  If not, who will write it up in a reference-able way?
-}
 
 The meaning of run and subrun are defined by Mu2e.
 All that \art requires is that a subrun contain zero or more
@@ -410,7 +402,7 @@ The text in this section refers to Figure~\ref{fig:filesDLLS}.
 These descriptions are only high level overviews,
 intended to convey enough information to design the RMD and no more.
 
-\fixme{References to the full story.}
+\fixme{References to the full TDAQ docs.}
 
 \begin{figure}[tbp]
 \centering
@@ -424,7 +416,7 @@ intended to convey enough information to design the RMD and no more.
 \subsection{Tracker and Calorimeter}
 \label{ssec:TrkAndCal}
 
-Data flows from the tracker and calorimeter into FPGAs mounted the PCI-e bus of 36 of 40 DAQ servers;
+Data flows from the tracker and calorimeter into FPGAs mounted the PCIe bus of 36 of 40 DAQ servers;
 these FPGAs are called Data Transfer Controllers (DTC).
 All DTCs on these 36 DAQ servers communicate with each other over a high speed switch
 and perform event building.
@@ -458,7 +450,11 @@ Within one trigger filter process there is no guarantee that events within one s
 increasing order of {\code art::EventID}.
 
 \fixme{Is there a guarantee that, within a single process all events from subrun n will be seen before
-any events from subrun n+1?  If so, for personal interest, how is this guaranteed?}
+  any events from subrun n+1?  If so, for personal interest, how is this guaranteed?
+  I am thinking of a process running on, the CRV, ExtMon or MSTM servers; these get all of their
+  events from BoardReaders on other machines.  I can see that they will usually be in increasing order
+  but I don't see a requirement that they be in increasing order.
+}
 
 The trigger filters process the events and make a trigger decision on
 each event.
@@ -567,7 +563,7 @@ A second option is for an independent agent within the TDAQ system to trigger th
 in this case most SiPM noise events will usually not contain tracker and calorimeter information.
 The TDAQ team has not yet decided between these options.
 
-\fixme{If the collaboration has a preference, they should make it know.}
+\fixme{If the collaboration has a preference, they should make it known.}
 
 \subsection{Extinction Monitor}
 \label{ssec:ExtMon}
@@ -577,8 +573,10 @@ That server will receive the data and write it to one or more files in
 the DLLS.  This server will also have trigger filter processes that receive
 data from buffers on the 36 servers that talk to the tracker and calorimeter.
 
-\fixme{confirm that there are no {\code artdaq::DataLogger} processes involved and
-that the DLLS is NSF mounted to this server.}
+\fixme{Understand some more about the mechanics.  Are there {\code artdaq::DataLogger} processes involved.
+  How is data transferred to the data logger node?  Eric says no NSF mount because of reliability.  So
+  something else.
+  }
 
 \subsection{Muon Stopping Target Monitor}
 \label{ssec:ExtMon}
