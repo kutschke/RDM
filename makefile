@@ -11,6 +11,9 @@ draft:
 print:
 	latexmk  --pdf --output-directory=print-dir print.tex
 
+spell:
+	aspell -t -c body/body.tex
+
 # Clean up all generated files including .pdf
 clean:
 	latexmk -C --output-directory=draft-dir draft
