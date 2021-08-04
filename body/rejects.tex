@@ -1,0 +1,197 @@
+%
+% This file holds fragments of text that I wrote but later decided that they did not belong
+% in this document.  I am keeping them here to skim them later to see if I missed anything.
+%
+
+Each DAQ server has either one or two custom FGPAs mounted its PCIe bus;
+these are called Data Transfer Controllers (DTC).
+Each DTC is directly connected by optical fibers to a subset of the channels
+in one detector subsystem;
+it recieves data
+sees a subset of the readout electronics from one detectors;
+
+the DTCs is connected by optical fiber.
+
+
+Data flows from the Tracker and Calorimeter into 36 of 40 DAQ servers;
+each server sees a subset of the channels from one of the detectors.
+More specifically, the data is received by Data Transfer Controllers (DTC) chips,
+which are custom FPGAs that sit on the PCIe bus of each server,
+either one or two DTCs per server.
+The DTCs talk to each other via a dedicated high speed event building network switch
+that is separate from the other networks that are part of the TDAQ world.
+(each DTC has many optical fibers connected to it).
+The cartoon picture is that each DTC recieves a stream of event fragments;
+all of the DTCs exchange fragments
+and the end result is that each DTC holds a buffer of complete events;
+every event is present in exactly one DTC.
+When a DTC has one full buffer of events it tells its host computer that the buffer is
+available and it starts to fill the next buffer.
+
+The host computer recieves the event buffer from the DTC
+and makes it available as a source of events for trigger filter processes.
+
+\fixme{ Instead of ``recieves'' do I want ``copies'', DMAs ...?}
+
+The software that distrutes events the filter processes will usually send events
+to filter processes running on the same DAQ server but it is smart enough to
+load balance across all servers.
+
+The trigger filter software looks at both the tracker and calorimeter information
+and selects events of interest using many different criteria.
+Each criterion is expressed as a series of \art modules run sequentially in
+an \art ``trigger path''.  This is also referred to as a ``trigger line''.
+For example one trigger line will select events that contain a track that is
+consistent with being a downstream moving electron with a momentum in broad
+windown near the signal window.  Other trigger lines will look for events
+that useful for calibration.  Other trigger lines will prescale events
+that fail one of trigger filter modules.  A snapshot of the currently
+planned trigger lines can be found in Section~??\fixme{add reference}.
+
+Events that pass the trigger, included events that from the
+
+Two special cases: intensity stream and 
+
+
+
+\fixme{reference is p20 of Mu2e-doc-38735, Ryan's talk at the June 2021 Collab meeting}
+
+
+A large subset of the nodes in the DAQ farm have custom programmed
+FPGAs connected to their PCIE buses;
+these are called Data Transfer Controllers (DTCs).
+
+------------------------------------------------------------------------------
+
+\fixme{where does the next para belong?}
+
+\art has a feature that allows users to define the maximum
+number of events in one file or a maximum file size.
+When this feature is enabled,
+and when \art detects that a limit has been reached,
+it closes the output file and opens a new one.
+\art provides several options to ensure distinct names for these files.
+Some experiments use these features to split the events from one
+subrun over many files,
+keeping each file small enough for convenient data handling and data processing.
+Mu2e has decided not to do this.
+Mu2e will choose the duration of a subrun to ensure that this is not needed.
+The language is that Mu2e will produce ``atomic subruns''; there are some
+subtlties to this that are discussed in Appendix~\ref{sec:AtomicSubruns}.
+
+
+-------------------------------------------------------------------------
+\section{Atomic Subruns}
+\label{sec:AtomicSubruns}
+
+A subrun is said to be ``atomic'' if all of the events in that subrun are found in a single \art file.
+If subruns are atomic, some bookkeeping operations are simplified and Mu2e plans to exploit this;
+therefore the TDAQ and RDM should aim to create atomic subruns as early as possible in the workflow.
+
+Why ``as early as possible'' and not ``must''?
+
+The base design of the TDAQ is to have one {\code artdaq::DataLogger} process that will
+see all events and write them to disk; it may write several output files.
+However it is possible that a single {\code artdaq::DataLogger} will not have the
+resources to handle the load.  Should that happen the solution is to have two
+{\code artdaq::DataLogger} processes, each of which sees about half of the events.
+In this case all of the output files will be duplicated,
+one for each {\code artdaq::DataLogger}.
+In this case subruns are not atomic;
+the RDM and DPC will need to work together to decide where in the workflow these two files
+are joined to create atomic subruns.
+
+There is an additional subtlety.
+Section~\ref{sec:TagsIDsRunsSubRuns} described that Mu2e subruns will cover many MI cycles
+and, therefore, will include both on-spill and off-spill events.
+One option for the TDAQ, the option that is preferred by DPC,
+is that TDAQ will write on-spill and off-spill events to separate files.
+The Mu2e DPC anticipates only workflows in which these two files are treated separately;
+another way of saying it is that there will be no jobs that read events from both of these files.
+Therefore we can say that within each of these two file streams the design is for subruns to be atomic.
+This is the usual meaning of ``atomic subrun'' throughout this document.
+
+\subsection{Sparse Skims}
+
+This section assumes that the reader is familiar with the \art concepts
+of data products that are held by the {\code art::Run} object
+and data products that are held by the {\code art::SubRun} object.
+It also assumes that the reader is familiar with the \art concepts
+of {\code art::Run} and {\code art::SubRun} fragments
+and with the concept of aggregation for these fragments.
+For information about these concepts see~\cite{RunAndSubRunProducts}
+and~\cite{ProductAggregation}.
+
+
+By default \art assumes that subruns are not atomic
+but you can tell \art that subruns will be atomic by adding this fcl
+parameter to the parameter set of the RootInput module
+
+\cmd{ compactEventRanges : true}
+
+When \art sees a beginRun transition, it reads all run data products from the input file.
+When \art is configured for atomic subruns, it drops these data products
+from memory at the matching endRun transition.
+Similarly, when \art has beginSubRun transition, it reads all subrun data products from the input file.
+When \art is configured for atomic subruns, it drops these data products
+from memory at the matching endSubRun transition.
+When \art is not configured for atomic subruns it does not drop these data products from
+memory at the matching endSubRun transition; the reason is that 
+
+On the other hand, when art is configured for non-atomic subruns
+
+When \art is configured for non atomic subruns there is an extra memory cost;
+for sparse skims this can dominate the memory usage of the process.
+While this added memory cost is small early in the production, chain when
+only a few subruns are seen by any given process, it's important to be
+aware of this constraint when shaping the data for downstream processing.
+
+To understand how the memory cost arises,
+it is necessary to understand the structure of an art file.
+Suppose that you have an art file with run:subrun ( 1:1, 1:2, 2:1, 2:2).
+When you read the art file you will see the sequence of records shown
+in table~\ref{tab:atomicsubruns}.
+
+\begin{table}
+\begin{center}
+\caption[Example For Discussion of Atomic Subruns]{Example for the Discussion of Atomic Subruns}
+\label{tab:atomicsubruns}
+\begin{tabular}{l}\hline
+  begin run record for run 1 \\
+  begin subrun record for subrun 1:1 \\
+  records for the events of subrun 1:1 \\
+  end subrun record for subrun 1:1 \\
+   begin subrun record for subrun 1:2 \\
+   records for the events of subrun 1:2 \\
+   end subrun record for subrun 1:2 \\
+   end run record for run 1. \\ \hline
+   begin run record for run 2. \\
+   begin subrun record for subrun 2:1 \\
+   records for the events of subrun 2:1 \\
+   end subrun record for subrun 2:1 \\
+   begin subrun record for subrun 2:2 \\
+   records for the events of subrun 2:2 \\
+   end subrun record for subrun 2:2 \\
+   end run record for run 2. \\
+   \hline
+  \end{tabular}
+\end{center}
+\end{table}
+
+Now suppose that your job reads the run and subrun scope data products at begin run/subrun time.
+If \art is configured for atomic subruns, after processing the module and service
+{\code endSubRun} calls, it will delete the subrun data products from memory. It can safely do this
+because it knows that it will never see another event from that subrun.
+Similar for the run scope data products.
+
+On the other hand, if \art has been configured for non-atomic subruns, it will retain all subrun
+and run data products in memory until the end of the job.
+For a job that sees a small number of subruns this is usually not an important memory cost; but
+for sparse skims it can be dominant.
+
+
+There is a second consideration about atomic subruns:
+for sparse skims there is significant memory savings if subruns are atomic.
+While the RDM will not see sparse skims, the people developing it should know the big picture.
+
+
