@@ -15,10 +15,11 @@ it is readily available for the follow-on data processing steps.
 
 Other functions of the RDM include:
 \begin{enumerate}
-\item Updating the file catalog to include meta-data and file location(s).
+\item Update the file catalog to include meta-data and file location(s).
 \item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream data processing.
-\item Managing the free space in the online disk buffer
-\item Copy/mirror subsets of the online databases to the offline databases
+\item Manage the free space in the online disk buffer.
+\item Manage the free space in the parts of dCache that are critical to data taking.
+\item Copy/mirror subsets of the online databases to the offline databases.
 \item Copy miscellaneous other files, such as the output of the online Data Quality Monitoring (DQM) system, to long term storage.
 \end{enumerate}
 
@@ -30,17 +31,26 @@ so the RDM does not need other hooks into those workflows.
 %The DPS has the responsibility to be the interface between Mu2e and CCD regarding this network.
 %Details of this responsbility are in Section~\fixme{reference the appropriate section}.
 
+The remainder of Chapter~\ref{ch:intro} will describe some conventions used in this document and
+state some prerequisites that will be needed to understand it.
+Chapter~\ref{ch:SelectedDetails}  of will describe a view of the
+Mu2e Trigger and Data Acquisition system (TDAQ) as seen from the RDM perspective;
+it will also describe the some elements of the downstream data processing as seen
+from the RDM perspective.
+Chapter~\ref{ch:DataStreamsAndFileStreams} will define the ideas of data streams and file streams.
+Chapter~\ref{ch:data_streams} will give a strawman list of data streams.
+Chapter~\ref{ch:file_streams} will give a strawman list of file streams.
+Chapter~\ref{ch:requirements} states the requirements for the RDM system.
+Chapter~\ref{ch:questions} lists some questions that will need to answered when designing the system.
+Chapter~\ref{ch:RiskRegistry} describes risks that are known at this time.
+The document includes several appendices that discuss details that provide
+information that is not documented elsewhere.
 
-The main body of this document will describe a view of the
-Mu2e Trigger and Data Acquisition system (TDAQ) as seen from the RDM perspective.
-The cartoon picture is that TDAQ writes files to a disk buffer and RDM drains the disk buffer.
-However, there are about 30 data streams, some tightly coupled to each
-other, some loosely coupled to the others and others independent of the others.
-The data streams will be grouped into a smaller number of files.
 
-This document includes additional information that is not written down concisely
-in other places and is needed either to frame the description of the data streams
-or to inform requirements.
+%The cartoon picture is that TDAQ writes files to a disk buffer and RDM drains the disk buffer.
+%However, there are about 30 data streams, some tightly coupled to each
+%other, some loosely coupled to the others and others independent of the others.
+%The data streams will be grouped into a smaller number of files.
 
 
 The RDM owns no hardware.  It uses hardware that is owned and maintained
@@ -84,29 +94,32 @@ These ideas are defined in reference~\cite{TriggerSU2020}.
 
 
 
-\section{Assumed Knowledge}
+\section{Prerequisites}
 
 This document assumes that the reader has basic familiarity with the \art event processing framework~\cite{ARTWORDPRESS}, including
 
 \begin{enumerate}
 \item The ideas of runs and subruns.
 \item {\code art::EventID}
-\item Event data products.
-\item Run and subrun data products.
+\item Event, run and subrun  data products.
 \item Run and subrun data product fragments.
 \item The notion of an atomic subrun, when all events within a subrun are contained within a single file.
       See appendix~\fixme{reference} for a subtle variant of this idea.
 \end{enumerate}
 
-It is assumed that the reader knows the names of the following two packages of and their role in Mu2e: OTS DAQ and \artdaq.
-The configuration and run-time control of the TDAQ system is managed using a software package called
-Off The Shelf DAQ (OTS DAQ)~\cite{MU2EOTSDAQ};
-the OTS DAQ configuration is stored in a database sometimes called ``OTS database'' and sometimes called the ``Mongo database''.
-The software used to move data and to control processes on the DAQ Server and DAQ Data Logger nodes is called \artdaq~\cite{MU2EARTDAQ}.
+It is assumed that the reader knows has knows the roles played within the Mu2e TDAQ by the following:
+\begin{description}
+\item[OTS DAQ] ``Off-the-shelf DAQ''~\cite{MU2EOTSDAQ}: the software used to provide configuration and top level run-time control of the TDAQ system.
+  \begin{itemize}
+  \item OTS DAQ stores configurations in an instance of a MongoDB database.  This is variously called the ``OTS database'' or the ``Mongo database''.
+  \end{itemize}
+\item[\artdaq] The software used to move data and to control processes on the DAQ Server and DAQ Data Logger nodes.
+\end{description}
 Both OTS DAQ and \artdaq are Fermilab developed packages used by Mu2e and other experiments.
+It is not necessary to know details of these packages.
 
 \chapter{Selected Details about the TDAQ}
-\label{chap:SelectedDetails}
+\label{ch:SelectedDetails}
 This Chapter describes the view of the TDAQ and the computer center as seen by the RDM.
 
 \section{Block Diagram}
@@ -604,7 +617,7 @@ data from buffers on the 36 servers that talk to the tracker and calorimeter.
   }
 
 \subsection{Muon Stopping Target Monitor}
-\label{ssec:ExtMon}
+\label{ssec:MSTM}
 
 The Muon Stopping Target Monitor sends its data to a single node in the DAQ server farm.
 That server will receive the data and write it to one or more files in
@@ -668,17 +681,53 @@ the reorganization of the data.
 
 % Example
 % Keep sections under development
-\IfStrEq{\ISDRAFT}{YES}{
+%\IfStrEq{\ISDRAFT}{YES}{
+%
+%\chapter{A Chapter under development}
+%\label{ch:under_development}
+%
+%This is a chapter still under development.
+%It is kept here to illustrate the use of the  ISDRAFT macro.
+%
+%} % end `ISDRAFT = YES'
 
-\chapter{A Chapter under development}
-\label{ch:under_development}
+\chapter{List of Data Streams}
+\label{ch:data_streams}
 
-This is a chapter still under development.
-It is kept here to illustrate the use of the  ISDRAFT macro.
+This chapter lists all of the data streams known at this time.
 
-} % end `ISDRAFT = YES'
+\section{On-Spill Data Streams}
+\label{sec:on_spill_data_streams}
+
+\begin{enumerate}
+\item Triggered, Trk+Cal
+\item Triggered, CRV
+\item Intensity stream
+\item ExtMon - 4 data streams
+\item MSTM - 4 data streams
+\end{enumerate}
+
+\section{Off-Spill Data Streams}
+\label{sec:off_spill_data_streams}
+
+\begin{enumerate}
+\item Triggered, Trk+Cal
+\item Triggered, CRV
+\item SiPM Pedestal, CRV
+  \item SiPM Pedestal, Trk+Cal (may not exist)
+\item ExtMon???
+\item MSTM - Will continue to produce the same 4 data streams for at least 10 minutes into an extended shutdown.
+\end{enumerate}
+
+\section{Other Data Streams}
+\label{sec:Other_data_streams}
+
+\chapter{Strawman for the File Streams}
+\label{ch:file_streams}
+
 
 \chapter{Requirements}
+\label{ch:requirements}
 
 This chapter lists requirements for the RDM system.
 
@@ -735,12 +784,16 @@ It is also not subject to scheduled maintenance at inconvenient times.
 It seems prudent to keep the maximum amount of data available in the DLLS so that
 it is available for understanding emergencies.
 
-
 \chapter{Questions}
+\label{ch:questions}
 
 A list of questions that should be addressed in the design of the RDM:
 
 \begin{enumerate}
+\item Does DPC have any responsibilities to move information from EPICS to anywhere?
+\item Mu2e needs to manage the free space in /pnfs/mu2e/persistent. Manage parts of DPC will touch this space.
+  Whose job is it to ensure what there is adequate free space? Maybe RDM should have a separate dCache
+  partition to isolate it from issues caused by other users?
 \item What does it mean for a file to be ``on tape'' and therefore deletable?
   For example, if it's in both persistent and tape backed dCache, but not yet on tape, is that good enough?
 \item Work with TDAQ to define a policy for locating files within the DLLS.
@@ -780,6 +833,28 @@ A list of questions that should be addressed in the design of the RDM:
   Is additional mitigation still needed.
 \end{enumerate}
 
+
+\chapter{Risk Registry}
+\label{ch:RiskRegistry}
+
+\section{Split Files from DAQ}
+\label{sec:Risk:SplitFiles}
+
+The base design is to have a single data logger node that receives data from all DAQ server nodes.
+This design cannot be tested at scale until all of the hardware has been purchased;
+even then, the tests will be based on simulated events, not actual data.
+There is a risk that there will be a bandwidth limit that makes this impossible.
+Should this occur, there backup plan is to have two or more Data Logger nodes
+that each see a fraction of the events;
+perhaps half of the DAQ Servers talk to one Data Logger node and the other half talk to another node.
+The result will be that events from the same file stream from the same subrun end up split across multiple files.
+This breaks the requirement that subruns be atomic.
+
+Should this occur the RDM will need to modify the bookkeeping system to allow non-atomic subruns early
+in the workflow and modify the workflow to restore atomic subruns as soon as possible.
+
+Another alternative is to tighten the trigger algorithms to accept fewer events;
+this risks loosing events that we really do want to keep and is the last alternative.
 
 \appendix
 
@@ -932,27 +1007,6 @@ While the RDM will not see sparse skims, the people developing it should know th
 
 \section{Order of Events}
 
-\chapter{Risk Registry}
-\label{app:RisKRegistry}
-
-\section{Split Files from DAQ}
-\label{app:Risk:SplitFiles}
-
-The base design is to have a single data logger node that receives data from all DAQ server nodes.
-This design cannot be tested at scale until all of the hardware has been purchased;
-even then, the tests will be based on simulated events, not actual data.
-There is a risk that there will be a bandwidth limit that makes this impossible.
-Should this occur, there backup plan is to have two or more Data Logger nodes
-that each see a fraction of the events;
-perhaps half of the DAQ Servers talk to one Data Logger node and the other half talk to another node.
-The result will be that events from the same file stream from the same subrun end up split across multiple files.
-This breaks the requirement that subruns be atomic.
-
-Should this occur the RDM will need to modify the bookkeeping system to allow non-atomic subruns early
-in the workflow and modify the workflow to restore atomic subruns as soon as possible.
-
-Another alternative is to tighten the trigger algorithms to accept fewer events;
-this risks loosing events that we really do want to keep and is the last alternative.
 
 \clearpage
 \phantomsection
