@@ -13,18 +13,19 @@ but, for some data, it will be in one of the offline databases.
 Some data may also reside transiently in disk files in the computer center so that
 it is readily available for the follow-on data processing steps.
 
-Other functions of the RDM include:
+The full list of computing functions provided by the RDM is:
 \begin{enumerate}
+\item Move data from the online disk buffer to long term storage.
 \item Update the file catalog to include meta-data and file location(s).
 \item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream data processing.
 \item Manage the free space in the online disk buffer.
 \item Manage the free space in the parts of dCache that are critical to data taking.
 \item Copy/mirror subsets of the online databases to the offline databases.
 \item Copy miscellaneous other files, such as the output of the online Data Quality Monitoring (DQM) system, to long term storage.
+\item Provide tools to manage and monitor the RDM system.
+\item If needed, inform the follow-on workflows when work is ready for them to do.
 \end{enumerate}
 
-The current plan is that the offline data processing workflows will be driven by updates to the file catalog;
-so the RDM does not need other hooks into those workflows.
 
 %The operation and maintenance of the Mu2e building router and the network between the Mu2e Hall and the computer center
 %is the responsibility of the Fermilab Core Computing Division (CCD).
@@ -35,7 +36,7 @@ The remainder of Chapter~\ref{ch:intro} will describe some conventions used in t
 state some prerequisites that will be needed to understand it.
 Chapter~\ref{ch:SelectedDetails}  of will describe a view of the
 Mu2e Trigger and Data Acquisition system (TDAQ) as seen from the RDM perspective;
-it will also describe the some elements of the downstream data processing as seen
+it will also describe some elements of the downstream data processing as seen
 from the RDM perspective.
 Chapter~\ref{ch:DataStreamsAndFileStreams} will define the ideas of data streams and file streams.
 Chapter~\ref{ch:data_streams} will give a strawman list of data streams.
@@ -43,9 +44,8 @@ Chapter~\ref{ch:file_streams} will give a strawman list of file streams.
 Chapter~\ref{ch:requirements} states the requirements for the RDM system.
 Chapter~\ref{ch:questions} lists some questions that will need to answered when designing the system.
 Chapter~\ref{ch:RiskRegistry} describes risks that are known at this time.
-The document includes several appendices that discuss details that provide
-information that is not documented elsewhere.
-
+The document includes several appendices that provide some details outside of the main line
+of this document.
 
 %The cartoon picture is that TDAQ writes files to a disk buffer and RDM drains the disk buffer.
 %However, there are about 30 data streams, some tightly coupled to each
@@ -73,14 +73,14 @@ the name of this task was changed to RDM.
 In this document the word ``computer center'' is used as a collective noun for the
 Feynman Computing Center (FCC) and the Grid Computing Center (GCC).
 When it is important to distinguish the two, one of the two will be named explicitly.
-This choice also allows future changes to the computing center infrastructure over the
+This language allows for changes to the computing center infrastructure over the
 lifetime of Mu2e.
 
 The DPC is not part of the Mu2e Construction Project but it is part of Mu2e Operations
-and Pre-Operations.
+and Pre-Operations organizations.
 In various places, this document refers to ``Mu2e groups'', such as the TDAQ group.
 Sometimes this will mean an L2 group within the Mu2e Construction Project and at other
-times it will mean a group within the Mu2e Operations or Pre-Operations organization;
+times it will mean a group within the Mu2e Operations or Pre-Operations organizations;
 and at other times it will mean a group within the collaboration organization.
 Most of the time it will not be important to distinguish between these different meanings
 of group; when it is important, it will be stated explicitly.
@@ -103,24 +103,23 @@ This document assumes that the reader has basic familiarity with the \art event 
 \item {\code art::EventID}
 \item Event, run and subrun  data products.
 \item Run and subrun data product fragments.
-\item The notion of an atomic subrun, when all events within a subrun are contained within a single file.
-      See appendix~\fixme{reference} for a subtle variant of this idea.
+\item The notion of an atomic subrun: see appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a defintion.
 \end{enumerate}
 
-It is assumed that the reader knows has knows the roles played within the Mu2e TDAQ by the following:
+It is assumed that the reader knows the roles played within the Mu2e TDAQ by the following:
 \begin{description}
 \item[OTS DAQ] ``Off-the-shelf DAQ''~\cite{MU2EOTSDAQ}: the software used to provide configuration and top level run-time control of the TDAQ system.
-  \begin{itemize}
-  \item OTS DAQ stores configurations in an instance of a MongoDB database.  This is variously called the ``OTS database'' or the ``Mongo database''.
-  \end{itemize}
+\item[OTS DB] OTS DAQ stores configurations in an instance of a MongoDB database.  This is variously called the ``OTS database'' or the ``Mongo database''.
 \item[\artdaq] The software used to move data and to control processes on the DAQ Server and DAQ Data Logger nodes.
 \end{description}
-Both OTS DAQ and \artdaq are Fermilab developed packages used by Mu2e and other experiments.
-It is not necessary to know details of these packages.
+Both the OTS DAQ and \artdaq software packages are developed and maintained by Fermilab SCD;
+they are used by Mu2e and other experiments. It is not necessary to know details of these packages.
 
-\chapter{Selected Details about the TDAQ}
+\chapter{External Interfaces}
 \label{ch:SelectedDetails}
-This Chapter describes the view of the TDAQ and the computer center as seen by the RDM.
+This Chapter describes a RDM centric view of the external organziations
+with which RDM has interfaces.  These include the Mu2e TDAQ system,
+the computer center and the follow-on data processing workflows.
 
 \section{Block Diagram}
 \label{sec:BlockDiagram}
@@ -787,27 +786,30 @@ it is available for understanding emergencies.
 \chapter{Questions}
 \label{ch:questions}
 
-A list of questions that should be addressed in the design of the RDM:
+Below is a list of questions that must be addressed during the design of the RDM:
 
 \begin{enumerate}
-\item Does DPC have any responsibilities to move information from EPICS to anywhere?
+\item How will Pass1 and other follow-on workflows know that new data has arrived?
+  Will it be driven entirely by updates to the file catalog or do we need other
+  hooks to those workflows?
+\item Does RDM have any responsibilities to move information from EPICS to offline?
 \item Mu2e needs to manage the free space in /pnfs/mu2e/persistent. Manage parts of DPC will touch this space.
   Whose job is it to ensure what there is adequate free space? Maybe RDM should have a separate dCache
   partition to isolate it from issues caused by other users?
 \item What does it mean for a file to be ``on tape'' and therefore deletable?
   For example, if it's in both persistent and tape backed dCache, but not yet on tape, is that good enough?
 \item Work with TDAQ to define a policy for locating files within the DLLS.
-\item Revisit the question of keeping N hours of free space in the DLLS vs aggressively deleting files.  If
-  we decide to change then we need to update the requirements.
+\item Revisit the question of keeping N hours of free space in the DLLS vs aggressively deleting files to keep
+  maximum free space.  If we decide to change then we need to update the requirements.
 \item Update data size estimates;  is the DLLS sized large enough for 48 hours of data?
   If not, do we ask TDAQ to buy more space or do we live with a shorter maximum buffering time?
   We do not need more space until we are commissioning with beam so this could be operations money, not project money.
-\item My instinct is that we don't want a system that uses polling to discover files that need to be moved to tape
+\item My instinct is that we don't want a system that walks the file system or uses polling to discover files that need to be moved to tape
   and files that are on tape.
   Think about recovering from from a long network or dCache downtime.  Will it scale?
   Remember that we need to discover pairs of files that need to move together.
-\item Do we start using and move to RUCIO later?  Or move to RUCIO now?
-  How does this decision interact with requirements for ongoing simulation, VST and test stand work?
+\item   When do we move SAM to RUCIO? As soon as we can? During the long shutdown or later?  Never?
+  How will an early-ish transition interact with requirements for ongoing simulation, VST and test stand work?
   Can both SAM and RUCIO coexist?
 \item Work with TDAQ to understand the constraints that drive the choices of how to
   map data streams to file streams.
@@ -823,7 +825,8 @@ A list of questions that should be addressed in the design of the RDM:
 \item Check with TDAQ: will you close an output file every subrun and open a new one? Will it be the same
   on all file streams or can it differ?  What's the plan to deal with a subrun transition when one
   event is very late arriving?  How does that last case affect RDM?
-\item Work with Pass1 team to decide whose job it is to merge the CRV data into the Trk+Cal data.
+\item Work with Pass1 team to decide whose job it is to merge the CRV data into the Trk+Cal data and other
+     data reshaping tasks.
 \item When RDM is working through a backlog due to disruption of dCache or network service, what is the priority
   order?  Oldest first or newest first?  All on-spill before any off-spill?  Other?
 \item At one time it looked like the raw data format for the CRV might be very inefficient
@@ -831,6 +834,11 @@ A list of questions that should be addressed in the design of the RDM:
   One mitigation that was discussed was to reformat the raw data after it was in dCache and before it was written to tape.
   The other mitigation was to change the off-spill event length to 100~$\mu$s; did that provide enough mitigation?
   Is additional mitigation still needed.
+\item The discussion to date has always assumed that the unit of data processing will be an integer number of files
+  and that files must be small enough to be fully processed in under a few hours.  Is this still a valid assumption
+  or can we relax it?  This is a question for the Pass1 and downstream side of DPC but it can change the requirements for RDM.
+\item Anothing implict assumption is that the unit of checkpointing will be one grid job. Is this still valid?
+  If so, where do we write it down?
 \end{enumerate}
 
 
@@ -840,23 +848,68 @@ A list of questions that should be addressed in the design of the RDM:
 \section{Split Files from DAQ}
 \label{sec:Risk:SplitFiles}
 
-The base design is to have a single data logger node that receives data from all DAQ server nodes.
+The base design is to have a two data logger nodes that alternate subruns
+for the trk+cal data streams.
 This design cannot be tested at scale until all of the hardware has been purchased;
 even then, the tests will be based on simulated events, not actual data.
-There is a risk that there will be a bandwidth limit that makes this impossible.
-Should this occur, there backup plan is to have two or more Data Logger nodes
-that each see a fraction of the events;
-perhaps half of the DAQ Servers talk to one Data Logger node and the other half talk to another node.
-The result will be that events from the same file stream from the same subrun end up split across multiple files.
+There is a risk that there will be a resource limit that makes this impossible.
+Should this occur, there backup plan is to have spread the events from one
+subrun across two or more Data Logger nodes;
+each node would see only a fraction of the events
+The result will be that events from the same file stream
+from the same subrun end up split across multiple files.
 This breaks the requirement that subruns be atomic.
 
-Should this occur the RDM will need to modify the bookkeeping system to allow non-atomic subruns early
+Should this occur the Mu2e will need to modify the bookkeeping system to allow non-atomic subruns early
 in the workflow and modify the workflow to restore atomic subruns as soon as possible.
+There are no resources to do this work in the online system so it will need to be done
+after the data is in the computer center.
+The merging could be done either as part of RDM or as part of Pass1.
 
 Another alternative is to tighten the trigger algorithms to accept fewer events;
 this risks loosing events that we really do want to keep and is the last alternative.
 
 \appendix
+
+\chapter{Atomic Subruns}
+\label{ch:AtomicSubrunsExtendedDefinition}
+
+For a given dataset, if all events from one subrun are contained within a single \art file
+then that subrun is said to be ``atomic''.
+The caveat of ``for a given dataset'' means that if we filter events from dataset A
+to produce dataset B, then we only care that all events that pass the filter are in a single file.
+The idea of atomic subruns allows for multiple subruns to be contained within a single file.
+
+Consider the case that Mu2e writes the following 3 data files for each subrun:
+\begin{enumerate}
+\item On-spill events.
+\item Off-spill events.
+\item Intensity stream events.
+\end{enumerate}
+Each of these files belongs to a distinct dataset; so this split of events does not break the notion
+of atomic subruns.
+
+Suppose that someone decides to create a new set of files that contains selected events from both on-spill
+and off-spill.  Conceptually those files are part of a distinct dataset and, if all selected events
+are in a single file, then that subrun is atomic.
+
+Why is the notion of atomic subrun important?  The reasons include:
+\begin{enumerate}
+\item The bookkeeping system for recording which events are in which file requires atomic subruns.
+\item Having atomic subruns helps reduce trashing of conditions data during data processing.
+\item A consumer of a subrun data product knows that the information is complete, and does not need
+  to develop and maintain code to manage the possibility of several subrun product fragments.
+\item Within one art job, if subruns are not atomic,
+  then is it is necessary to accumulate all subrun data products in memory.
+  If subruns are atomic, then \art may safely delete subrun data products when the subrun ends.
+  In sparse skims this leads to memory use that grows monotonically with subrun count,
+  which can dominate the memory used by the job and slows down jobs because of the IO cost of
+  the subrun data products.
+\end{enumerate}
+
+The last two concerns apply also to run data products.
+However runs will be far too large to ever have atomic runs except in the most heavily skimmed data sets.
+The designers of the follow-on workflows will need to keep this in mind.
 
 \chapter{Network Between Mu2e Building Router and Computer Center}
 \label{app:RouterAndNetwork}.
@@ -890,120 +943,6 @@ This chapter describes details of \art that should be considered when
 designing the RDM.  This includes details that are important for the RDM
 proper and details that are important when shaping data for downstream
 processing.
-
-\section{Atomic Subruns}
-\label{sec:AtomicSubruns}
-
-A subrun is said to be ``atomic'' if all of the events in that subrun are found in a single \art file.
-If subruns are atomic, some bookkeeping operations are simplified and Mu2e plans to exploit this;
-therefore the TDAQ and RDM should aim to create atomic subruns as early as possible in the workflow.
-
-Why ``as early as possible'' and not ``must''?
-
-The base design of the TDAQ is to have one {\code artdaq::DataLogger} process that will
-see all events and write them to disk; it may write several output files.
-However it is possible that a single {\code artdaq::DataLogger} will not have the
-resources to handle the load.  Should that happen the solution is to have two
-{\code artdaq::DataLogger} processes, each of which sees about half of the events.
-In this case all of the output files will be duplicated,
-one for each {\code artdaq::DataLogger}.
-In this case subruns are not atomic;
-the RDM and DPC will need to work together to decide where in the workflow these two files
-are joined to create atomic subruns.
-
-There is an additional subtlety.
-Section~\ref{sec:TagsIDsRunsSubRuns} described that Mu2e subruns will cover many MI cycles
-and, therefore, will include both on-spill and off-spill events.
-One option for the TDAQ, the option that is preferred by DPC,
-is that TDAQ will write on-spill and off-spill events to separate files.
-The Mu2e DPC anticipates only workflows in which these two files are treated separately;
-another way of saying it is that there will be no jobs that read events from both of these files.
-Therefore we can say that within each of these two file streams the design is for subruns to be atomic.
-This is the usual meaning of ``atomic subrun'' throughout this document.
-
-\subsection{Sparse Skims}
-
-This section assumes that the reader is familiar with the \art concepts
-of data products that are held by the {\code art::Run} object
-and data products that are held by the {\code art::SubRun} object.
-It also assumes that the reader is familiar with the \art concepts
-of {\code art::Run} and {\code art::SubRun} fragments
-and with the concept of aggregation for these fragments.
-For information about these concepts see~\cite{RunAndSubRunProducts}
-and~\cite{ProductAggregation}.
-
-
-By default \art assumes that subruns are not atomic
-but you can tell \art that subruns will be atomic by adding this fcl
-parameter to the parameter set of the RootInput module
-
-\cmd{ compactEventRanges : true}
-
-When \art sees a beginRun transition, it reads all run data products from the input file.
-When \art is configured for atomic subruns, it drops these data products
-from memory at the matching endRun transition.
-Similarly, when \art has beginSubRun transition, it reads all subrun data products from the input file.
-When \art is configured for atomic subruns, it drops these data products
-from memory at the matching endSubRun transition.
-When \art is not configured for atomic subruns it does not drop these data products from
-memory at the matching endSubRun transition; the reason is that 
-
-On the other hand, when art is configured for non-atomic subruns
-
-When \art is configured for non atomic subruns there is an extra memory cost;
-for sparse skims this can dominate the memory usage of the process.
-While this added memory cost is small early in the production, chain when
-only a few subruns are seen by any given process, it's important to be
-aware of this constraint when shaping the data for downstream processing.
-
-To understand how the memory cost arises,
-it is necessary to understand the structure of an art file.
-Suppose that you have an art file with run:subrun ( 1:1, 1:2, 2:1, 2:2).
-When you read the art file you will see the sequence of records shown
-in table~\ref{tab:atomicsubruns}.
-
-\begin{table}
-\begin{center}
-\caption[Example For Discussion of Atomic Subruns]{Example for the Discussion of Atomic Subruns}
-\label{tab:atomicsubruns}
-\begin{tabular}{l}\hline
-  begin run record for run 1 \\
-  begin subrun record for subrun 1:1 \\
-  records for the events of subrun 1:1 \\
-  end subrun record for subrun 1:1 \\
-   begin subrun record for subrun 1:2 \\
-   records for the events of subrun 1:2 \\
-   end subrun record for subrun 1:2 \\
-   end run record for run 1. \\ \hline
-   begin run record for run 2. \\
-   begin subrun record for subrun 2:1 \\
-   records for the events of subrun 2:1 \\
-   end subrun record for subrun 2:1 \\
-   begin subrun record for subrun 2:2 \\
-   records for the events of subrun 2:2 \\
-   end subrun record for subrun 2:2 \\
-   end run record for run 2. \\
-   \hline
-  \end{tabular}
-\end{center}
-\end{table}
-
-Now suppose that your job reads the run and subrun scope data products at begin run/subrun time.
-If \art is configured for atomic subruns, after processing the module and service
-{\code endSubRun} calls, it will delete the subrun data products from memory. It can safely do this
-because it knows that it will never see another event from that subrun.
-Similar for the run scope data products.
-
-On the other hand, if \art has been configured for non-atomic subruns, it will retain all subrun
-and run data products in memory until the end of the job.
-For a job that sees a small number of subruns this is usually not an important memory cost; but
-for sparse skims it can be dominant.
-
-
-There is a second consideration about atomic subruns:
-for sparse skims there is significant memory savings if subruns are atomic.
-While the RDM will not see sparse skims, the people developing it should know the big picture.
-
 
 \section{Order of Events}
 
