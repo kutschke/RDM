@@ -724,6 +724,9 @@ This chapter lists all of the data streams known at this time.
 \chapter{Strawman for the File Streams}
 \label{ch:file_streams}
 
+\fixme{Be sure to say that the choice of more files vs few files may be constrained by resource limits.
+  Also the resource limits may be different for a hybrid array vs an all SSD array.
+}
 
 \chapter{Requirements}
 \label{ch:requirements}
@@ -911,6 +914,12 @@ The last two concerns apply also to run data products.
 However runs will be far too large to ever have atomic runs except in the most heavily skimmed data sets.
 The designers of the follow-on workflows will need to keep this in mind.
 
+By default \art assumes that subruns are not atomic and it accumulates subrun data products throughtout the job.
+You can tell \art that subruns are atomic by adding the following parameter to the configuration of
+RootInput: \cmd{ compactEventRanges : true}.
+
+\fixme{Check that last para with Kyle.}
+
 \chapter{Network Between Mu2e Building Router and Computer Center}
 \label{app:RouterAndNetwork}.
 
@@ -935,7 +944,7 @@ The lab network.
 \chapter{Data Logger Local Storage}
 \label{app:DataLoggerLocalStorage}
 
-\fixme{ Specs etc on the Data Logger Local Storage go here}.
+\fixme{ Specs etc on the Data Logger Local Storage go here.  Get them from the email thread with Eric.}.
 
 \chapter{Things to Know About \art}
 
