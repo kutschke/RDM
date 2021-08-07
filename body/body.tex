@@ -733,12 +733,15 @@ This chapter lists all of the data streams known at this time.
 
 Below is a list of questions that must be addressed during the design of the RDM:
 
+\fixme{These are not ordered in any way.  How should we order them.}
+
 \begin{enumerate}
+\item Decide on a split level for data products in \art root files.  We now use 99999; CMS uses 0 (or 1, whichever is the smallest allowed).
 \item How will Pass1 and other follow-on workflows know that new data has arrived?
   Will it be driven entirely by updates to the file catalog or do we need other
   hooks to those workflows?
 \item Does RDM have any responsibilities to move information from EPICS to offline?
-\item Mu2e needs to manage the free space in /pnfs/mu2e/persistent. Manage parts of DPC will touch this space.
+\item Mu2e needs to manage the free space in /pnfs/mu2e/persistent. Many parts of DPC will touch this space.
   Whose job is it to ensure what there is adequate free space? Maybe RDM should have a separate dCache
   partition to isolate it from issues caused by other users?
 \item What does it mean for a file to be ``on tape'' and therefore deletable?
@@ -746,13 +749,20 @@ Below is a list of questions that must be addressed during the design of the RDM
 \item Work with TDAQ to define a policy for locating files within the DLLS.
 \item Revisit the question of keeping N hours of free space in the DLLS vs aggressively deleting files to keep
   maximum free space.  If we decide to change then we need to update the requirements.
-\item Update data size estimates;  is the DLLS sized large enough for 48 hours of data?
+\item Update data size estimates; using the design DLLS size, how many hours of buffer do we have?  Is it good enough?
   If not, do we ask TDAQ to buy more space or do we live with a shorter maximum buffering time?
-  We do not need more space until we are commissioning with beam so this could be operations money, not project money.
-\item My instinct is that we don't want a system that walks the file system or uses polling to discover files that need to be moved to tape
-  and files that are on tape.
-  Think about recovering from from a long network or dCache downtime.  Will it scale?
-  Remember that we need to discover pairs of files that need to move together.
+  The size of the buffer will not be an issue until we are commissioning with beam so this does not need to
+  be addressed soon and it need not be on-project.
+\item Work with the TDAQ team to define a protocol for TDAQ to inform us when new files are available.
+  My instinct is that we don't to walk the file system discover files that need to be moved to tape.
+  I prefer that we receive a message and manage a queue; this implies persistency for the queue state
+  and error recovery tools.
+  Should this be raised to a requirement?
+\item
+  Think about recovering from from a long network or dCache downtime:
+  we will want to identify pairs of trk+cal file and its matching crv file and move these pairs as a unit;
+  we do not want catch up processing delayed while one file is on dCache but it's partner is not.
+  Do have a operaions based preference for LIFO vs FIFO? What about all on-spill before any off-spill?
 \item   When do we move SAM to RUCIO? As soon as we can? During the long shutdown or later?  Never?
   How will an early-ish transition interact with requirements for ongoing simulation, VST and test stand work?
   Can both SAM and RUCIO coexist?
@@ -763,27 +773,24 @@ Below is a list of questions that must be addressed during the design of the RDM
     \item split on-spill and off-spill to separate file streams
     \item split off-spill into triggered and pedestal.
   \end{enumerate}
-\item Identify where in the workflow the split raw data files, Trk+Cal in one,
-  and CRV in the other, will be joined into a single file.  This will require consultation with the team running
-  Pass1.
-\item In the event of multiple data loggers, when do the files from a single subrun get joined to atomic.
+\item Where in the workflow will we merge each Trk+Cal file with it's matching crv file?
+  It could be in either RDM or Pass1; so we will need to discuss with the Pass1 team.
 \item Check with TDAQ: will you close an output file every subrun and open a new one? Will it be the same
   on all file streams or can it differ?  What's the plan to deal with a subrun transition when one
   event is very late arriving?  How does that last case affect RDM?
-\item Work with Pass1 team to decide whose job it is to merge the CRV data into the Trk+Cal data and other
-     data reshaping tasks.
-\item When RDM is working through a backlog due to disruption of dCache or network service, what is the priority
-  order?  Oldest first or newest first?  All on-spill before any off-spill?  Other?
 \item At one time it looked like the raw data format for the CRV might be very inefficient
-  because every header had to be present even if there was no data.
+  because every header had to be present even if there was no associated data.
   One mitigation that was discussed was to reformat the raw data after it was in dCache and before it was written to tape.
-  The other mitigation was to change the off-spill event length to 100~$\mu$s; did that provide enough mitigation?
-  Is additional mitigation still needed.
-\item The discussion to date has always assumed that the unit of data processing will be an integer number of files
-  and that files must be small enough to be fully processed in under a few hours.  Is this still a valid assumption
-  or can we relax it?  This is a question for the Pass1 and downstream side of DPC but it can change the requirements for RDM.
-\item Anothing implict assumption is that the unit of checkpointing will be one grid job. Is this still valid?
-  If so, where do we write it down?
+  The other mitigation was to change the off-spill event duration to 100~$\mu$s; did that provide enough mitigation for off-spill events?
+  For on-spill events the CRV data is small part of the whole; is it worthwhile to improve efficiency on a small part of the whole?
+  What do we need to do here?  Does this belong in the risk registry?
+\item This document has some implicit assumptions.  Are they still correct?  Where should we write them down to make them explicit:
+  \begin{enumerate}
+  \item The unit of data processing will be an integer number of files; because of atomic subruns, this implies an integer number
+    of complete subruns.
+  \item Files must be small enough to be processed in under a few hours.
+  \item The unit of checkpointing will be one grid job.
+  \end{enumerate}
 \end{enumerate}
 
 
@@ -828,7 +835,7 @@ This chapter lists requirements for the RDM system.
 \item If we are using persistent dCache, then the RDM must also manage free space in persistent dCache.
 \item Provide a way to control and monitor all parts of the RDM; the monitoring system should raise warnings or alarms when appropriate.
 \item If Mu2e needs to split/join or otherwise reshape the data from the DLLS before it is written to tape, do this work.
-  This task will be performed using offline resources because there are no resources in the online world to do it.
+    This task will be performed using offline resources because there are no resources in the online world to do it.
 \end{enumerate}
 
 Some comments about the requirements.
@@ -849,40 +856,47 @@ it is available for understanding emergencies.
 \chapter{Risk Registry}
 \label{ch:RiskRegistry}
 
-\section{Split Files from DAQ}
-\label{sec:Risk:SplitFiles}
+\section{Non-atomic Subruns from TDAQ}
+\label{sec:Risk:NonAtomicSubruns}
 
-The base design is to have a two data logger nodes that alternate subruns
-for the trk+cal data streams.
-This design cannot be tested at scale until all of the hardware has been purchased;
-even then, the tests will be based on simulated events, not actual data.
-There is a risk that there will be a resource limit that makes this impossible.
-Should this occur, the backup plan is to have spread the events from one
-subrun across two or more Data Logger nodes;
-each node would see only a fraction of the events
-The result will be that events from the same file stream
-from the same subrun end up split across multiple files.
-This breaks the requirement that subruns be atomic.
+The TDAQ group plans that each file stream created by TDAQ will have atomic subruns~\ref{ch:AtomicSubrunsExtendedDefinition}.
+There is a risk that resource limitations will not allow this and, within some file streams,
+events from one subrun will be spread over 2 or more files.  It will not be possible
+to test the TDAQ design at scale until all equipment has been purchased and deployed.
+At that time it will be possible to do at-scale tests of much of the system using simulated events
+but there will remain a risk that the simulated events are not a good enough representation of data.
+Taking taking cosmic ray data will not stress the system enough to discover unforeseen resource limitations,
+This risk cannot be retired until we are taking beam data at design intensity.
 
-Should this occur the Mu2e will need to modify the bookkeeping system to allow non-atomic subruns early
-in the workflow and modify the workflow to restore atomic subruns as soon as possible.
-There are no resources to do this work in the online system so it will need to be done
-after the data is in the computer center.
+Should this risk materialize Mu2e DPC will need to modify the bookkeeping
+system to allow non-atomic subruns early in the workflow and modify the workflow
+to restore atomic subruns as soon as practical.
+There are no resources in the online system to merge files to restore atomic subruns
+so that work will need to be done after the data is in the computer center.
 The merging could be done either as part of RDM or as part of Pass1.
 
-Another alternative is to tighten the trigger algorithms to accept fewer events;
+An alternative is to tighten the trigger algorithms to accept fewer events;
 this risks loosing events that we really do want to keep and is the last alternative.
+It might be an expedient temporary measure duing commissioning.
+
 
 \appendix
 
 \chapter{Atomic Subruns}
 \label{ch:AtomicSubrunsExtendedDefinition}
 
-For a given dataset, if all events from one subrun are contained within a single \art file
+For a given dataset, if all events from each subrun are contained within a single \art file
 then that subrun is said to be ``atomic''.
-The caveat of ``for a given dataset'' means that if we filter events from dataset A
-to produce dataset B, then we only care that all events that pass the filter are in a single file.
-The idea of atomic subruns allows for multiple subruns to be contained within a single file.
+The caveat of ``for a given dataset'' means the following:
+suppose that dataset A contains all triggered events
+and we make dataset B that selects some events from dataset A.
+When we talk about the subruns of dataset B being atomic, we only care about events
+that passed the filter, not about events that failed the filter.
+
+The idea of atomic subruns does not require that each file contain events
+from only one subrun;
+it only requires that all events from one subrun be in one file.
+There may be many subruns in each file.
 
 Consider the case that Mu2e writes the following 3 data files for each subrun:
 \begin{enumerate}
@@ -893,27 +907,32 @@ Consider the case that Mu2e writes the following 3 data files for each subrun:
 Each of these files belongs to a distinct dataset; so this split of events does not break the notion
 of atomic subruns.
 
-Suppose that someone decides to create a new set of files that contains selected events from both on-spill
-and off-spill.  Conceptually those files are part of a distinct dataset and, if all selected events
-are in a single file, then that subrun is atomic.
+Suppose that someone decides to create a new file that contains selected events from both on-spill
+and off-spill.  Conceptually that file is part of a distinct dataset and, if all selected events from
+each selected subrun are in a single file, then those subruns are atomic.
 
-Why is the notion of atomic subrun important?  The reasons include:
+Mu2e offline data processing requires that subruns be atomic.  The reasons include:
 \begin{enumerate}
 \item The bookkeeping system for recording which events are in which file requires atomic subruns.
-\item Having atomic subruns helps reduce trashing of conditions data during data processing.
+\item Having atomic subruns helps reduce thrashing of conditions data during data processing.
 \item A consumer of a subrun data product knows that the information is complete, and does not need
   to develop and maintain code to manage the possibility of several subrun product fragments.
 \item Within one art job, if subruns are not atomic,
   then is it is necessary to accumulate all subrun data products in memory.
   If subruns are atomic, then \art may safely delete subrun data products when the subrun ends.
   In sparse skims this leads to memory use that grows monotonically with subrun count,
-  which can dominate the memory used by the job and slows down jobs because of the IO cost of
-  the subrun data products.
+  which can dominate the memory used by the job.
 \end{enumerate}
 
-The last two concerns apply also to run data products.
+The Risk Registry~\ref{sec:Risk:NonAtomicSubruns} discusses responses to the possibility
+that a resource limitation may stop the TDAQ from producing atomic subruns.
+
+The last two concerns also apply to run data products.
 However runs will be far too large to ever have atomic runs except in the most heavily skimmed data sets.
 The designers of the follow-on workflows will need to keep this in mind.
+In particular, if information is stored in run data product fragments, it will be important for users
+to understand when information is a fragment and when it has been aggregated over the full run.
+For this reason we prefer that run scope information used in analysis live in databases, not in run data products.
 
 By default \art assumes that subruns are not atomic and it accumulates subrun data products throughtout the job.
 You can tell \art that subruns are atomic by adding the following parameter to the configuration of
@@ -955,6 +974,11 @@ proper and details that are important when shaping data for downstream
 processing.
 
 \section{Order of Events}
+
+By default are processes all events within a single file in order of
+increasing {\code art::EventID}.
+In a file with events that have a very mixed up order, this can slow down
+data processing because of thrashing the root baskets.  
 
 
 \clearpage

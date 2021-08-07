@@ -195,3 +195,15 @@ for sparse skims there is significant memory savings if subruns are atomic.
 While the RDM will not see sparse skims, the people developing it should know the big picture.
 
 
+---------------------------------------------------------
+The base design is to have a two data logger nodes that alternate subruns
+for the trk+cal data streams.
+This design cannot be tested at scale until all of the hardware has been purchased;
+even then, the tests will be based on simulated events, not actual data.
+There is a risk that there will be a resource limit that makes this impossible.
+Should this occur, the backup plan is to have spread the events from one
+subrun across two or more Data Logger nodes;
+each node would see only a fraction of the events
+The result will be that events from the same file stream
+from the same subrun end up split across multiple files.
+This breaks the requirement that subruns be atomic.
