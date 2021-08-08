@@ -103,7 +103,7 @@ This document assumes that the reader has basic familiarity with the \art event 
 \item {\code art::EventID}
 \item Event, run and subrun  data products.
 \item Run and subrun data product fragments.
-\item The notion of an atomic subrun: see appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a defintion.
+\item The notion of an atomic subrun: see appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a definition.
 \end{enumerate}
 
 It is assumed that the reader knows the roles played within the Mu2e TDAQ by the following:
@@ -115,9 +115,9 @@ It is assumed that the reader knows the roles played within the Mu2e TDAQ by the
 Both the OTS DAQ and \artdaq software packages are developed and maintained by Fermilab SCD;
 they are used by Mu2e and other experiments. It is not necessary to know details of these packages.
 
-\chapter{External Interfaces}
+\chapter{Interfaces}
 \label{ch:SelectedDetails}
-This Chapter describes a RDM centric view of the external organziations
+This Chapter describes an RDM-centric view of the organizations and facilities
 with which RDM has interfaces.  These include the Mu2e TDAQ system,
 the computer center and the follow-on data processing workflows.
 
@@ -140,8 +140,8 @@ will read data from storage in the computer center,
 process it,
 and write data back to storage computer center.
 The first workflow in this chain is Pass1, which will run soon after new files
-are registered in the file catalog;
-some of the other workflows are shown for completeness.
+are resident on storage in the computer center and are registered in the file catalog;
+for additional details of the offline data processing workflows see~\ref{sec:downstreamProcessing}.
 
 \begin{figure}[tbp]
 \centering
@@ -159,7 +159,8 @@ A sixth detector has been proposed, the Production Target Scanning Monitor (PTSM
 which is drawn with a dotted box;
 it's primary use is to send rapid feedback to the accelerator control room
 and it's not clear what, if any, data it will send through the TDAQ system.
-In any event the data volume from that PTSM will be small enough that it will not be
+It is only mentioned here for completeness;
+the data volume from that PTSM will be small enough that it will not be
 a driver for the RDM.
 
 A cartoon picture of the TDAQ computer farm is that it has 40 DAQ Server nodes
@@ -203,7 +204,7 @@ When the Mu2e Hall was built and provisioned, CCD personnel installed a dual rou
 and connected it to the lab optical fiber network.
 RDM will move data from the Mu2e Hall
 to the computer center using this router and the lab optical fiber network.
-The router is standard item that CCD uses in many places and it stocks spares.
+The router is a standard item that CCD uses in many places and it stocks spares.
 CCD is responsible for the maintenance of both the router and the network.
 See Appendix~\ref{app:RouterAndNetwork} for the
 specs for the router and details of the arrangement with with CCD,
@@ -630,6 +631,53 @@ At this writing it has not yet been defined if it the PTSM will write any data t
 Should that happen it is likely that the pattern will be the same as for the ExtMon
 and MSTM.
 
+\section{Online Monitoring}
+\label{sec:onlineMonitoring}
+
+The Mu2e online system will record and monitor metrics about the health and operation of the apparatus.
+Some of these metrics will be recorded and monitored by the slow control system,
+which is a part	of the Mu2e Detector Control System (DCS)~\cite{DCSSpec}.
+The slow control system will be implemented using EPICS and is often call the ``EPICS system''.
+Other metrics will be produced by the trigger filter processes in the TDAQ Farm
+and others by the online DQM processes that are fed by the Dispatcher processes.
+These online systems will monitor low and intermediate level metrics.
+We believe that this will provide adequate timely feedback for detector operations.
+
+Monitoring of high level metrics will be performed by nearline processing,
+which is the first step of the offline data processing workflows;
+this will be discussed in the next section.
+
+\section{Interface with Downstream Processing}
+\label{sec:downstreamProcessing}
+
+Soon after data files are received in the computer center the data will be processed
+through Pass1, which is the first step in the offline data processing workflow.
+Pass1 will be the first processing step that sees data from all of the tracker,
+calorimeter and CRV at the same time.  The tasks to be done by Pass1 include,
+\begin{enumerate}
+  \item Perform complete reconstruction using the best available calibrations.
+  \item Produce high level metrics for nearline DQM.
+  \item Select events that will be used to produce the next iteration of calibrations
+  \item Select events for use in studies.
+  \item Perform any reshaping or reorganization of the data that was deferred from RDM.
+  \item Select events to proceed to the next stage of processing. \fixme{Or maybe Pass2 will also start with raw data?}
+\end{enumerate}
+
+Because of the nearline DQM role, the collaboration has set a requirement that
+95\% of the time Pass1 jobs should be complete in no more than 6~hours from the
+time that the file is closed by the TDAQ system.
+The caveat of 95\% of the time allows for tails in the response times of
+the network, dCache, ENSTORE and grid systems, including scheduled maintenance.
+At this time there is no breakdown of this requirement into separate requirements
+on the RDM and Pass1.
+
+The plan for the RDM is that, under normal operating conditions,
+files should be in the computer center within a few minutes of the file being closed
+by the TDAQ system.
+
+\fixme{Do we need to say more here? Should we make ``a few'' quantitative, for
+example within 10 minutes 9x\% of the time?}
+
 
 \chapter{Data Streams and File Streams}
 \label{ch:DataStreamsAndFileStreams}
@@ -651,7 +699,7 @@ The on-spill events will have many trigger lines; one might consider each trigge
 line it's own data stream or one might define groups of trigger lines as a data stream.
 Another example: the off-spill events will include some events that triggered based on
 the tracker or calorimeter and they will also include SiPM noise events.
-These are distinct data streams.
+The triggered events and the SiPM noise events are distinct data streams.
 
 A ``file stream'' is a series of files that contain events from one or more data streams.
 For example we might decide to bundle all of the on-spill data streams into a single
@@ -668,7 +716,7 @@ while file streams are choice about how to group data streams for convenience of
        And we need to address if a given data stream may be in more than one file stream.
 }
 
-The design of number of file streams and the grouping of data streams in to file streams
+The design of the grouping of data streams in to file streams
 is in progress.
 In an ideal world the TDAQ would chose to organize data into file streams that best match the needs
 of downstream processing.
@@ -760,9 +808,9 @@ Below is a list of questions that must be addressed during the design of the RDM
   Should this be raised to a requirement?
 \item
   Think about recovering from from a long network or dCache downtime:
-  we will want to identify pairs of trk+cal file and its matching crv file and move these pairs as a unit;
+  we will want to identify pairs of trk+cal file and its matching CRV file and move these pairs as a unit;
   we do not want catch up processing delayed while one file is on dCache but it's partner is not.
-  Do have a operaions based preference for LIFO vs FIFO? What about all on-spill before any off-spill?
+  Do have a operations based preference for LIFO vs FIFO? What about all on-spill before any off-spill?
 \item   When do we move SAM to RUCIO? As soon as we can? During the long shutdown or later?  Never?
   How will an early-ish transition interact with requirements for ongoing simulation, VST and test stand work?
   Can both SAM and RUCIO coexist?
@@ -773,7 +821,7 @@ Below is a list of questions that must be addressed during the design of the RDM
     \item split on-spill and off-spill to separate file streams
     \item split off-spill into triggered and pedestal.
   \end{enumerate}
-\item Where in the workflow will we merge each Trk+Cal file with it's matching crv file?
+\item Where in the workflow will we merge each Trk+Cal file with it's matching CRV file?
   It could be in either RDM or Pass1; so we will need to discuss with the Pass1 team.
 \item Check with TDAQ: will you close an output file every subrun and open a new one? Will it be the same
   on all file streams or can it differ?  What's the plan to deal with a subrun transition when one
@@ -877,7 +925,7 @@ The merging could be done either as part of RDM or as part of Pass1.
 
 An alternative is to tighten the trigger algorithms to accept fewer events;
 this risks loosing events that we really do want to keep and is the last alternative.
-It might be an expedient temporary measure duing commissioning.
+It might be an expedient temporary measure during commissioning.
 
 
 \appendix
@@ -934,7 +982,7 @@ In particular, if information is stored in run data product fragments, it will b
 to understand when information is a fragment and when it has been aggregated over the full run.
 For this reason we prefer that run scope information used in analysis live in databases, not in run data products.
 
-By default \art assumes that subruns are not atomic and it accumulates subrun data products throughtout the job.
+By default \art assumes that subruns are not atomic and it accumulates subrun data products throughout the job.
 You can tell \art that subruns are atomic by adding the following parameter to the configuration of
 RootInput: \cmd{ compactEventRanges : true}.
 
