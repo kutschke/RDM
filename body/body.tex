@@ -96,30 +96,67 @@ These ideas are defined in reference~\cite{TriggerSU2020}.
 
 \section{Prerequisites}
 
-This document assumes that the reader has basic familiarity with the \art event processing framework~\cite{ARTWORDPRESS}, including
+This section describes knowledge that it assumes that the reader has.
+
+This document assumes that the reader has basic familiarity with the \art event processing framework~\cite{ARTWORDPRESS}, including:
 
 \begin{enumerate}
 \item The ideas of runs and subruns.
 \item {\code art::EventID}
 \item Event, run and subrun  data products.
-\item Run and subrun data product fragments.
-\item The notion of an atomic subrun: see appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a definition.
+\item Run and subrun data product fragments; aggregation of run and subrun products.
+\item The notion of an atomic subrun: see appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a definition and additional discussion.
+\item Modules
+\item Filter modules and paths
 \end{enumerate}
 
-It is assumed that the reader knows the roles played within the Mu2e TDAQ by the following:
-\begin{description}
-\item[OTS DAQ] ``Off-the-shelf DAQ''~\cite{MU2EOTSDAQ}: the software used to provide configuration and top level run-time control of the TDAQ system.
-\item[OTS DB] OTS DAQ stores configurations in an instance of a MongoDB database.  This is variously called the ``OTS database'' or the ``Mongo database''.
-\item[\artdaq] The software used to move data and to control processes on the DAQ Server and DAQ Data Logger nodes.
-\end{description}
-Both the OTS DAQ and \artdaq software packages are developed and maintained by Fermilab SCD;
-they are used by Mu2e and other experiments. It is not necessary to know details of these packages.
+When \art reads an input file, its default is to read the events in order of increasing {\code art::EventID}.
+Instead \art can be told to read the events in the order in which they were written to the file; to do this
+add the following to the configuration of {\code RootInput}: \cmd{noEventSort: false}.
+Both options have costs and it may be important to make an informed decision about which costs to incur when.
+
+It is a assumed that the reader has basic familiarity with SAM, dCache, ENSTORE and submitting grid jobs.
+Some details about tapes are given in Appendix~\ref{app:AboutTapes}.
+
+It is assumed that the reader knows the Mu2e standards and practices regarding SAM file names\cite{Mu2eSAM}
+and location of files in tape backed dCache\cite{FileNames}.
+
 
 \chapter{Interfaces}
 \label{ch:SelectedDetails}
-This Chapter describes an RDM-centric view of the organizations and facilities
-with which RDM has interfaces.  These include the Mu2e TDAQ system,
+This Chapter describes an RDM-centric view of the organizations, software, services and facilities
+with which RDM will interact.  These include the Mu2e TDAQ system,
 the computer center and the follow-on data processing workflows.
+
+\section{The Mu2e Online System}
+\label{sec:BlockDiagram}
+
+This section briefly describes the elements of the Mu2e Online system that the reader will encounter in later sections.
+
+\begin{description}
+\item[OTS DAQ] ``Off-The-Shelf DAQ''~\cite{MU2EOTSDAQ}: the software used to provide configuration and top level run-time control of the TDAQ system.
+  Shifters will modify run configurations, start runs and stop runs using OTS DAQ.
+\item[OTS DB] OTS DAQ stores its configurations in an instance of a MongoDB database.  This is variously called the ``OTS database'' or the ``Mongo database''.
+  Other uses of this database will be discussed later in this document. \fixme{reference to online conditions db; may also store run summary info here}.
+\item[\artdaq] The software used to control processes and to move data between processes on the TDAQ Server and TDAQ Data Logger nodes.
+\item[DCS] ``Detector Control System''.
+  For details see~\cite{DCSSpec};
+  this is also known as the ``slow control system'' or the ``EPICS system''
+  Its functions include:
+  \begin{enumerate}
+    \item Turn hardware on and off. Set voltages and hardware limits.
+    \item Read back and store process variables (PV) such as voltages, currents, temperatures, heartbeats etc.
+    \item Monitor PVs: alarm if out of tolerance; display timelines on request.
+  \end{enumerate}
+\item[EPICS] The name of software technology used to implement the DCS.
+\item[EPICS DB] EPICS stores its PV+timestamp data in a relational database.
+  This is often called the ``EPICS DB'' but it's a misnomer because it will likely use
+  a general purpose relational database that will be used by EPICS
+  and by other online software.
+\end{description}
+Both OTS DAQ and \artdaq are developed and supported by the Fermilab SCD;
+they are used by Mu2e and by other experiments.
+
 
 \section{Block Diagram}
 \label{sec:BlockDiagram}
@@ -160,7 +197,7 @@ which is drawn with a dotted box;
 it's primary use is to send rapid feedback to the accelerator control room
 and it's not clear what, if any, data it will send through the TDAQ system.
 It is only mentioned here for completeness;
-the data volume from that PTSM will be small enough that it will not be
+the data volume from the PTSM will be small enough that it will not be
 a driver for the RDM.
 
 A cartoon picture of the TDAQ computer farm is that it has 40 DAQ Server nodes
@@ -227,7 +264,7 @@ when to make the transition to RUCIO.
 The heart of the TDAQ system is the Command Fan-Out (CFO) that delivers
 configuration information and timing signals to all elements of the DAQ.
 The inputs to the CFO are the RF0 signal from the accelerator
-and a Run Plan that comes from Mu2e DAQ configuration.
+and a Run Plan that comes from OTS DAQ.
 Just prior to the start of each event,
 the CFO distributes a 16-byte heartbeat packet that describes the upcoming event~\cite{PacketProtocols};
 among other things, this contains the EventWindowTag (EWT) and EventMode fields,
@@ -257,7 +294,7 @@ that tells the TDAQ system in which mode to operate for the upcoming event.
 This section defines the concepts of on-spill, off-spill and near-spill running.
 
 It is expected that, for most of it's running time,
-Mu2e will the Fermilab Main Injector with a neutrino experiment,
+Mu2e will share the Fermilab Main Injector with a neutrino experiment,
 first, with NOvA and, later, with DUNE.
 To keep this document easier to read it will discuss sharing with NOvA but sharing with DUNE is implied.
 The change from NOvA to DUNE may change details
@@ -301,7 +338,7 @@ Table~\ref{tab:timescales} summarizes the time scales within one MI cycle.
 \label{tab:timescales}
 \begin{tabular}{ll}\hline
    1/15~s & Period of one Booster cycle \\
-   21     & Booster cycles within the MI cycle \\
+   21     & Booster cycles in one MI cycle \\
    1.4~s  & Period of one MI cycle \\
    43.1~ms & Duration of one spill \\
    8       & Number of spills per MI cycle \\
@@ -348,7 +385,7 @@ The design of the Mu2e TDAQ system is that trigger processing lags the incoming 
 during the on-spill period and catches up during the off-spill period.  There is
 buffering at various places in the TDAQ system to support this.
 
-It's possible that the MI cycle might need to be increased to 22 BO cycles;
+It's possible that the MI cycle might need to be increased to 22 Booster cycles;
 should that happen the additional time will be allocated to a longer off-spill period.
 This does not significantly change the requirements for the RDM.
 
@@ -360,7 +397,7 @@ The data volume produced in one bunch running will be about 60\% of that produce
 in two bunch running; otherwise the requirements for the two are the same.
 
 There will be times when Mu2e is taking data but NOvA is not.
-In such times, the base plan is that Mu2e will continue to take data using the same MI cycle of 21 BO cycles.
+In such times, the base plan is that Mu2e will continue to take data using the same MI cycle of 21 Booster cycles.
 There are several technical limitations that prevent Mu2e from reducing the off-spill period
 in order to increase the duty factor:
 there are radiation safety limits on the average beam power;
@@ -390,6 +427,12 @@ The mapping of EWT to  {\code art::EventID} will be unique and
 {\code art::EventID}'s will be monotonically increasing with the time
 that the event occurred.
 The EWT will be recorded as part of the \art data for each event.
+
+The ExtMon and MSTM teams have discussed writing some or all of their data in non-\art formats
+in which the data is identified by an EWT, not an {\code art::EventID}.
+The information needed to convert between these two representations
+will be available in the offline environment.
+This will allow correlating ExtMon and MSTM data with the data stored in \art format.
 
 The meaning of run and subrun are defined by Mu2e.
 All that \art requires is that a subrun contain zero or more
@@ -455,7 +498,7 @@ intended to convey enough information to design the RMD and no more.
 \subsection{Tracker and Calorimeter}
 \label{ssec:TrkAndCal}
 
-Data flows from the tracker and calorimeter into FPGAs mounted the PCIe bus of 36 of 40 DAQ servers;
+Data flows from the tracker and calorimeter into FPGAs mounted on the PCIe bus of 36 of 40 DAQ servers;
 these FPGAs are called Data Transfer Controllers (DTC).
 All DTCs on these 36 DAQ servers communicate with each other over a high speed switch
 and perform event building.
@@ -474,12 +517,13 @@ The trigger filter processes on each DAQ Server are controlled by a process
 called an {\code artdaq::EventBuilder}.
 This name is historical and reflects the function that it had for earlier experiments in which \artdaq was developed.
 For Mu2e, event building will be done in the DTCs and the function of an
-{\code artdaq::EventBuilder} process is to receive events from one of
-the {\code artdaq::BoardReader} processes and to distribute them to the trigger filter \art processes.
+{\code artdaq::EventBuilder} process is to receive events from
+the {\code artdaq::BoardReader} processes and to distribute them to the trigger filter \art processes
+that it controls.
 
 If an {\code artdaq::EventBuilder} has trigger filter processes that are ready for their next event,
-and if no events are available from {\code artdaq::BoardReader} process(es) on that server,
-then the {\code artdaq::EventBuilder} can fetch event buffers from {\code artdaq::BoardReader} processes
+and if no events are available from any of the {\code artdaq::BoardReader} processes on that server,
+then the {\code artdaq::EventBuilder} can fetch events from {\code artdaq::BoardReader} processes
 on other DAQ servers.
 This allows all 40 DAQ servers to run trigger filter processes even though only 36 of the 40 servers
 communicate with the tracker and calorimeter.
@@ -497,8 +541,7 @@ increasing order of {\code art::EventID}.
 
 The trigger filters make a trigger decision on each event.
 The current design is that about 1 in 400 events will pass the trigger;
-this includes all events that pass the primary triggers,
-prescaled events that pass the support triggers,
+this includes all events that pass the primary or support triggers
 and prescaled events that fail at selected places during trigger processing;
 random triggers are included in the last category.
 Throughout this document the phrase ``passes the trigger'', without additional modifiers,
@@ -509,7 +552,7 @@ Details of the software trigger system, as of May 2021,
 are available in reference~\cite{TriggerSU2020}.
 
 
-Each \art trigger filter process sends events that pass the trigger over a standard ethernet
+Each \art trigger filter process sends events that pass the trigger over a network
 to one of the two data logger nodes where they are received by an {\code artdaq::DataLogger} process
 that writes the events to files in the DLLS.
 This process may be configured to write all events to a single file
@@ -518,11 +561,11 @@ for example all on-spill events to one file and all off-spill events to another.
 It has yet to be determined exactly how many files will be written
 by each {\code artdaq::DataLogger}.
 
-Because different events have very different processing times in the trigger processes,
+Because different events have very different trigger processing times
 and because {\code artdaq::EventBuilder} processes can draw events from
 any of the {\code artdaq::BoardReader} processes, events will arrive at the
 {\code artdaq::DataLogger} out of order.  In particular, early events from subrun N+1
-may arrive at the {\code artdaq::DataLogger} before the last event from subrun N.
+may arrive at an {\code artdaq::DataLogger} before the last event from subrun N.
 
 The TDAQ base design has two Data Logger nodes, each running an
 {\code artdaq::DataLogger} process that will receive tracker and calorimeter events.
@@ -547,6 +590,7 @@ The behavior for other event modes will be discussed elsewhere.
 \subsection{Cosmic Ray Veto}
 \label{ssec:CRV}
 
+This subsection also discusses Figure~\ref{fig:filesDLLS}.
 In on-spill running,
 data from the CRV system is read from the detectors and held in buffers in the
 readout electronics chain.
@@ -573,16 +617,17 @@ Therefore it will have to be done after data has been copied to the computer cen
 One of the questions in designing the RDM will be to work with the Pass1 team to
 decide if the responsibility for this job is part of the RDM or if it is part of Pass1.
 
+\begin{sloppypar}
 The original design of the TDAQ was the that an {\code artdaq::DataLogger} process
 would receive the tracker and calorimeter information for trigger events
 and buffer it internally until the CRV information arrived.
 After the CRV information arrived,
 the {\code artdaq::DataLogger} process would write an event containing information from all 3 subsystems.
-Recently the TDAQ team became concerned that this scheme would not work because
+Later the TDAQ team became concerned that this scheme would not work because
 the tail to long processing times in the trigger filters would exceed the buffering capacity within
 the CRV readout electronics.
 Therefore this plan was replaced with the two file solution.
-
+\end{sloppypar}
 
 The light sensors for the CRV system are Silicon Photo multipliers (SiPM).
 The CRV team have requested that, during off-spill running,
@@ -606,23 +651,94 @@ The TDAQ team has not yet decided between these options.
 \subsection{Extinction Monitor}
 \label{ssec:ExtMon}
 
-The Extinction Monitor system sends its data to a single node in the DAQ server farm.
-That server will receive the data and write it to one or more files in
-the DLLS.  This server will also have trigger filter processes that receive
-data from buffers on the 36 servers that talk to the tracker and calorimeter.
+Data from the Extinction monitor will be read independently of data
+from the tracker, calorimeter, CRV and MSTM.
+Its path to the DLLS will also be independent, as is indicated in Figure~\ref{fig:filesDLLS}.
+
+The Extinction Monitor has two subsystems, a pixel telescope and the Accelerator
+Fast Feedback (AFF) monitor.
+Both are located in a cavern to the side of the proton beam dump
+and both view a collimated piece of the phase space of secondary particles produced by the interaction
+of the proton beam in the production target.
+
+The job of the pixel telescope is to count the number of tracks that it sees in-time with the proton pulse and the number
+of tracks that it sees during the interval between proton pulses.
+If everything is working well, the first number will be about 40 per proton pulse
+and the second number will almost always be zero.
+If the second number is non-zero more than once every few hours it indicates a problem with the accelerator.
+
+The pixel telescope  hardware will be read out by a computer that is located in the cavern.
+This computer will process the raw data and send summary data plus
+several types of prescaled raw and intermediate level data to a server in the DAQ Server farm.
+Due to bandwidth limitations in the pixel readout, the ExtMon summary data will only be available
+every N events, where N will be something like 10 or 20.
+The server in the DAQ Server farm will receive the data and write it to one or more files in
+the DLLS.
+
+\fixme{Get a reference for the pixel telescopye summary data.}
+
+The AFF is a thick panel of scintillator that produces light when the secondary beam particles pass through it~\cite{ExtMonAFF}.
+For each proton pulse, the system will measure the light produced in-time with the proton pulse,
+which will be used as a proxy for the number of protons in the pulse.
+This information, 128 bits per proton pulse,  will be sent to the accelerator control room to provide fast feedback
+to regulate slow extraction.
+A copy of this information will also be sent through the TDAQ to a file in the DLLS.
+This system will also prescale raw and intermediate level data and send that through the
+
+The pixel telescope summary data and the AFF summary data  will both be small while the prescaled raw and intermediate
+level data will be large.
+It is likely that for each of the pixel telescope and the AFF, the summary data will be written to
+one file in the DLLS while the other data will be written to one or more other files in the DLLS.
+
+The details of the file formats have yet to be decided.
+It has also not been decided if the data will be written to the DLLS
+via an {\code artdaq::DataLogger} process
+or by some other means.
+
+\begin{sloppypar}
+The DAQ Server assigned to the ExtMon will also run trigger filter processes that receive
+data from {\code artdaq::BoardReader} processes on other DAQ servers.
+\end{sloppypar}
+
 
 \fixme{Understand some more about the mechanics.  Are there {\code artdaq::DataLogger} processes involved.
   How is data transferred to the data logger node?  Eric says no NSF mount because of reliability.  So
-  something else.
+  something else.  Should I say anything about how this summary data will be used?  It  is likely just
+  going to a database.
   }
 
 \subsection{Muon Stopping Target Monitor}
 \label{ssec:MSTM}
 
-The Muon Stopping Target Monitor sends its data to a single node in the DAQ server farm.
-That server will receive the data and write it to one or more files in
-the DLLS.  This server will also have trigger filter processes that receive
-data from buffers on the 36 servers that talk to the tracker and calorimeter.
+The story of data from the MSTM is similar to that of data from the ExtMon.
+Data from the MSTM  will be read independently of data
+from the tracker, calorimeter, CRV and ExtMon.
+Its path to the DLLS will also be independent, as is indicated in Figure~\ref{fig:filesDLLS}.
+
+The MSTM consists of two scintillating crystals located behind collimators in a shielded area
+at the far east end of the detector hall.
+The crystals and collimators are aligned so that the crystals will see X-rays and gamma rays
+produced in the Muon stopping target foils.
+The process of muon capture on the stopping target foils emits characteristic X-ray and gamma ray
+lines and the intensity of these lines is proportional to the number of stopped muons.
+The MSTM detectors will measure the energy of each photon and accumulate a pulse height spectrum over a period of a few minutes.
+The plan is to measure the intensity of the characteristic narrow lines in each spectrum and,
+from that, infer the number of muons that have stopped in the stopping target.
+
+The pulses produced by photons in these crystals will be measured by waveform digitizers that are read out
+by computers located close to the crystals.
+Summary information will be recorded for each pulse; this includes the EWT,
+a timestamp within the Event Window and a pulse height.
+In addition the system will record waveform data for prescaled raw and intermediate level data.
+It is likely that the summary data will be written to one file in the DLLS
+while the other data will be written to one or more other files.
+
+
+\begin{sloppypar}
+The DAQ Server assigned to the MSTM will also run trigger filter processes that receive
+data from {\code artdaq::BoardReader} processes on other DAQ servers.
+\end{sloppypar}
+
 
 \subsection{Production Target Scanning Monitor}
 
@@ -784,6 +900,8 @@ Below is a list of questions that must be addressed during the design of the RDM
 \fixme{These are not ordered in any way.  How should we order them.}
 
 \begin{enumerate}
+\item The ExtMon summary data will be small, on the scale of 200~KiB per MI cycle.  How will this be aggregated for storage on tape?
+  The answer may depend on how it is used in downstream processing.  Is SFA good enough?
 \item Decide on a split level for data products in \art root files.  We now use 99999; CMS uses 0 (or 1, whichever is the smallest allowed).
 \item How will Pass1 and other follow-on workflows know that new data has arrived?
   Will it be driven entirely by updates to the file catalog or do we need other
@@ -811,6 +929,22 @@ Below is a list of questions that must be addressed during the design of the RDM
   we will want to identify pairs of trk+cal file and its matching CRV file and move these pairs as a unit;
   we do not want catch up processing delayed while one file is on dCache but it's partner is not.
   Do have a operations based preference for LIFO vs FIFO? What about all on-spill before any off-spill?
+\item Corner cases to manage:
+  \begin{enumerate}
+    \item Files or subruns that contain zero events.
+    \item If data taking is paused, does RMD need to know that?  If so, how will it be notified?
+    \item When data taking has stopped for more than a few minutes (say a 15 minute maintenance access ),
+      we probably want to flush the system to make sure that all data is processed to the end of Pass1
+      in a timely fashion.
+      This is only relevant if there are synchronization points in the workflows in which processing
+      subrun N waits subrun N+1 before it takes the next step.
+    \item A variant on the previous item.  Suppose we are making tar files to archive read-rarely small
+      files, such as the ExtMon summary data.
+      If there is a pause in data taking, when do we decide to make a small tarball and when
+      do we wait for more files?  And the same question if we choose an aggregation method that is not
+      tar files.
+    \item If a shifter marks a run as bad, do we still want to run Pass1?
+  \end{enumerate}
 \item   When do we move SAM to RUCIO? As soon as we can? During the long shutdown or later?  Never?
   How will an early-ish transition interact with requirements for ongoing simulation, VST and test stand work?
   Can both SAM and RUCIO coexist?
@@ -993,7 +1127,8 @@ RootInput: \cmd{ compactEventRanges : true}.
 
 The Mu2e building router is owned by CCD.
 \begin{itemize}
-\item specs; dual; auto fail over; channels; free to increase \#channels
+\item specs; dual; auto fail over; channels;
+\item current configuration is to use one channel; 10 Gbs.  We can enable more channels at no cost to us.
 \item Router is owned and maintained by CCD; stock item so they can replace quickly.
 \item We pay yearly maintenance: \fixme{Amount in FY21 and inflation estimate}
 \item We pay for replacement; we pay CCD and they do the work. \fixme{when is next replacement due; replacement cycle}
@@ -1004,9 +1139,9 @@ The Mu2e building router is owned by CCD.
 
 The lab network.
 \begin{itemize}
-\item Install and maintained by CCD.
+\item Installed and maintained by CCD.
 \item Normal maintenance and repair is budgeted for in their ops budget
-\item If there were an emergency repair that exceeded their budget they would come to us. \fixme{make sure this is covered in MOU}
+\item If there were an emergency repair that affects Mu2e specifically and also exceeds their maintenance budget they would come to Mu2e for the cost.\fixme{make sure this is covered in MOU}
 \end{itemize}
 
 \chapter{Data Logger Local Storage}
@@ -1014,19 +1149,33 @@ The lab network.
 
 \fixme{ Specs etc on the Data Logger Local Storage go here.  Get them from the email thread with Eric.}.
 
-\chapter{Things to Know About \art}
+\chapter{Things to Know About Tapes}
+\label{app:AboutTapes}
 
-This chapter describes details of \art that should be considered when
-designing the RDM.  This includes details that are important for the RDM
-proper and details that are important when shaping data for downstream
-processing.
+\begin{enumerate}
+  \item We are now writing LT08
+  \item capacity of LT08
+  \item Sweet spot is 1000 files per tape; explain why.
+  \item SFA.  What is it; what are it's limitations.
+  \item What are our current SFA settings.  How do you look them up.
+  \item Prestaging does not update the LRU date.  Nor does touching.  You must read at least one byte.
+\end{enumerate}
 
-\section{Order of Events}
+\chapter{Looking for a Home}
+\label{app:LookingForaHome}
 
-By default are processes all events within a single file in order of
-increasing {\code art::EventID}.
-In a file with events that have a very mixed up order, this can slow down
-data processing because of thrashing the root baskets.  
+Some ideas that belong somewhere but I am not sure where
+
+\begin{enumerate}
+\item Suppose that one event is taking a very long time in one of the trigger filter processes.
+  \art does not have a way to interrupt the event and continue with the next event.
+  The only options are to let it finish or to kill the process and restart it.
+  It is possible to put filter modules in the path and identify events that are likely
+  to be dangerous based on some proxy.  A final option would be to instrument some critical
+  loops and limit the count.  In both cases the events can be diverted to a separate stream;
+  if necessary they can be prescaled.
+
+\end{enumerate}
 
 
 \clearpage
