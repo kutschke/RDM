@@ -95,25 +95,19 @@ These ideas are defined in reference~\cite{TriggerSU2020}.
 
 
 \section{Prerequisites}
-
-This section describes knowledge that it assumes that the reader has.
+\label{sec:prerequisites}
 
 This document assumes that the reader has basic familiarity with the \art event processing framework~\cite{ARTWORDPRESS}, including:
 
 \begin{enumerate}
-\item The ideas of runs and subruns.
+\item The ideas of events, subruns and runs.
 \item {\code art::EventID}
 \item Event, run and subrun  data products.
-\item Run and subrun data product fragments; aggregation of run and subrun products.
+\item Run and subrun data product fragments; aggregation of run and subrun fragments.
 \item The notion of an atomic subrun: see appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a definition and additional discussion.
 \item Modules
 \item Filter modules and paths
 \end{enumerate}
-
-When \art reads an input file, its default is to read the events in order of increasing {\code art::EventID}.
-Instead \art can be told to read the events in the order in which they were written to the file; to do this
-add the following to the configuration of {\code RootInput}: \cmd{noEventSort: false}.
-Both options have costs and it may be important to make an informed decision about which costs to incur when.
 
 It is a assumed that the reader has basic familiarity with SAM, dCache, ENSTORE and submitting grid jobs.
 Some details about tapes are given in Appendix~\ref{app:AboutTapes}.
@@ -129,7 +123,7 @@ with which RDM will interact.  These include the Mu2e TDAQ system,
 the computer center and the follow-on data processing workflows.
 
 \section{The Mu2e Online System}
-\label{sec:BlockDiagram}
+\label{sec:Mu2eOnlineSystem}
 
 This section briefly describes the elements of the Mu2e Online system that the reader will encounter in later sections.
 
@@ -646,7 +640,8 @@ A second option is for an independent agent within the TDAQ system to trigger th
 in this case most SiPM noise events will usually not contain tracker and calorimeter information.
 The TDAQ team has not yet decided between these options.
 
-\fixme{If the collaboration has a preference, they should make it known.}
+\fixme{If the collaboration has a preference, they should make it known. Do we need a section with
+questions for the collaboration?}
 
 \subsection{Extinction Monitor}
 \label{ssec:ExtMon}
@@ -667,7 +662,9 @@ If everything is working well, the first number will be about 40 per proton puls
 and the second number will almost always be zero.
 If the second number is non-zero more than once every few hours it indicates a problem with the accelerator.
 
-The pixel telescope  hardware will be read out by a computer that is located in the cavern.
+\fixme{Is 40 per proton pulse the right number?  Check with Andrei/Matthew.}
+
+The pixel telescope hardware will be read out by a computer that is located in the cavern.
 This computer will process the raw data and send summary data plus
 several types of prescaled raw and intermediate level data to a server in the DAQ Server farm.
 Due to bandwidth limitations in the pixel readout, the ExtMon summary data will only be available
@@ -675,7 +672,7 @@ every N events, where N will be something like 10 or 20.
 The server in the DAQ Server farm will receive the data and write it to one or more files in
 the DLLS.
 
-\fixme{Get a reference for the pixel telescopye summary data.}
+\fixme{Get a reference for the pixel telescope summary data.}
 
 The AFF is a thick panel of scintillator that produces light when the secondary beam particles pass through it~\cite{ExtMonAFF}.
 For each proton pulse, the system will measure the light produced in-time with the proton pulse,
@@ -684,6 +681,7 @@ This information, 128 bits per proton pulse,  will be sent to the accelerator co
 to regulate slow extraction.
 A copy of this information will also be sent through the TDAQ to a file in the DLLS.
 This system will also prescale raw and intermediate level data and send that through the
+the DAQ Server to the DLLS.
 
 The pixel telescope summary data and the AFF summary data  will both be small while the prescaled raw and intermediate
 level data will be large.
@@ -700,10 +698,17 @@ The DAQ Server assigned to the ExtMon will also run trigger filter processes tha
 data from {\code artdaq::BoardReader} processes on other DAQ servers.
 \end{sloppypar}
 
+\fixme{What are the downstream work flows for this data.  Likely the summary data from both subsystems
+  will go into a database and retrieved from that db as needed by offline jobs.
+  Probably it needs to be organized for retrieval by subrun?  Whose job is it to define the format?
+  Where does RDM's job end - do we need to populate the db as well as putting the file on tape?
+  Or is that Pass1?
+}
+
 
 \fixme{Understand some more about the mechanics.  Are there {\code artdaq::DataLogger} processes involved.
   How is data transferred to the data logger node?  Eric says no NSF mount because of reliability.  So
-  something else.  Should I say anything about how this summary data will be used?  It  is likely just
+  something else.  Should I say anything about how this summary data will be used?  It is likely just
   going to a database.
   }
 
@@ -897,15 +902,19 @@ This chapter lists all of the data streams known at this time.
 
 Below is a list of questions that must be addressed during the design of the RDM:
 
-\fixme{These are not ordered in any way.  How should we order them.}
+\fixme{These are not ordered in any way.  How should we order them?}
 
 \begin{enumerate}
+\item The TDAQ team plans that each of the trigger filter processes will have a unique process name.
+  Also each of the {\code artdaq::DataLogger} processes will have a unique name.
+  This will break the current \art implementation of secondary input files; see Section~\ref{appsec:SecondaryInputs}.
 \item The ExtMon summary data will be small, on the scale of 200~KiB per MI cycle.  How will this be aggregated for storage on tape?
   The answer may depend on how it is used in downstream processing.  Is SFA good enough?
 \item Decide on a split level for data products in \art root files.  We now use 99999; CMS uses 0 (or 1, whichever is the smallest allowed).
 \item How will Pass1 and other follow-on workflows know that new data has arrived?
   Will it be driven entirely by updates to the file catalog or do we need other
   hooks to those workflows?
+\item Does it make sense to consider POMS to drive the workflow of RDM?
 \item Does RDM have any responsibilities to move information from EPICS to offline?
 \item Mu2e needs to manage the free space in /pnfs/mu2e/persistent. Many parts of DPC will touch this space.
   Whose job is it to ensure what there is adequate free space? Maybe RDM should have a separate dCache
@@ -926,7 +935,7 @@ Below is a list of questions that must be addressed during the design of the RDM
   Should this be raised to a requirement?
 \item
   Think about recovering from from a long network or dCache downtime:
-  we will want to identify pairs of trk+cal file and its matching CRV file and move these pairs as a unit;
+  we will want to identify pairs of a Trk+Cal file and its matching CRV file and move these pairs as a unit;
   we do not want catch up processing delayed while one file is on dCache but it's partner is not.
   Do have a operations based preference for LIFO vs FIFO? What about all on-spill before any off-spill?
 \item Corner cases to manage:
@@ -1161,21 +1170,57 @@ The lab network.
   \item Prestaging does not update the LRU date.  Nor does touching.  You must read at least one byte.
 \end{enumerate}
 
+\chapter{Things to Know About \art}
+\label{app:Aboutart}
+
+This appendix describes features and limitations of art that might influence the design
+of the RDM.
+
+\section{Event Order }
+\label{appsec:EventOrder}
+
+When \art reads an input file, its default is to read the events in order of increasing {\code art::EventID}.
+Instead \art can be told to read the events in the order in which they were written to the file; to do this
+add the following to the configuration of {\code RootInput}: \cmd{noEventSort: false}.
+Both options have costs and it may be important to make an informed decision about which costs to incur when.
+
+\section{Secondary Inputs}
+\label{appsec:SecondaryInputs}
+
+The current plan is to use the secondary input feature of \art to merge the CRV on-spill file
+into the Trk+Cal on-spill file; similarly for off-spill. There is an example of using this feature in the GitHub repository:
+\href{https://github.com/kutschke/SecondaryInputs.git}{https://github.com/kutschke/SecondaryInputs.git}.
+The examples in that repository illustrate two limitations of this feature:
+
+\begin{enumerate}
+  \item The data products in the CRV file must have the same process\_name as the data products in Trk+Cal file.
+  \item One must not use \cmd{noEventSort: false} when doing the merge.
+\end{enumerate}
+
+
+\section{Events with Very Long Processing Times}
+
+Suppose that, for a particular event, one module is taking a very long time to process,
+perhaps 100~ms or even a few seconds.  \art does not have the ability to interrupt
+that module, mark the event for special treatment and continue the job.  The options are:
+
+\begin{enumerate}
+  \item Let the job continue to run and hope that it finishes soon enough.
+  \item Kill the processes and restart it.
+\end{enumerate}
+
+There are two other mitigations that Mu2e can do:
+\begin{enumerate}
+  \item Identify events that are likely to take a very long time to process and send them through a different trigger path.
+  \item Identify algorithms that are vulnerable to very long tails in execution time and provide breakout points.
+\end{enumerate}
+
+
 \chapter{Looking for a Home}
 \label{app:LookingForaHome}
 
-Some ideas that belong somewhere but I am not sure where
+Some ideas that belong somewhere but I am not sure where.
 
-\begin{enumerate}
-\item Suppose that one event is taking a very long time in one of the trigger filter processes.
-  \art does not have a way to interrupt the event and continue with the next event.
-  The only options are to let it finish or to kill the process and restart it.
-  It is possible to put filter modules in the path and identify events that are likely
-  to be dangerous based on some proxy.  A final option would be to instrument some critical
-  loops and limit the count.  In both cases the events can be diverted to a separate stream;
-  if necessary they can be prescaled.
-
-\end{enumerate}
 
 
 \clearpage
