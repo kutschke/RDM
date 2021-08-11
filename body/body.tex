@@ -67,6 +67,11 @@ the {\code artdaq::DataLogger} processes that run on the Data Logger nodes.
 To avoid confusion with these other uses of ``Data Logger'',
 the name of this task was changed to RDM.
 
+\section{Stakeholders}
+\label{sec:stakeholders}
+
+\fixme{Who are the stakeholders.}
+
 \section{Conventions Used in this Document}
 \label{sec:conventions}
 
@@ -893,9 +898,58 @@ This chapter lists all of the data streams known at this time.
 \chapter{Strawman for the File Streams}
 \label{ch:file_streams}
 
-\fixme{Be sure to say that the choice of more files vs few files may be constrained by resource limits.
-  Also the resource limits may be different for a hybrid array vs an all SSD array.
-}
+This chapter gives a strawman list of the files that will be written for one subrun.
+Some of the files contain multiple data streams and could be split into two or more files;
+for example one could imagine splitting the on-Spill Trk+Cal and CRV files by trigger line.
+Some of the files could be combined into a single file; for example the 4 ExtMon files could
+be reduced to 1, 2 or 3 files.
+
+\fixme{Update this with estimates of data volumes. What units should we use?  Maybe GB per subrun of 43 or
+  86 MI cycles (approximately 1 minute or 2 minutes )?
+  }
+
+\begin{enumerate}
+\item On-Spill
+  \begin{enumerate}
+    \item Trk+Cal stream
+    \item CRV stream
+    \item Intenisty stream
+    \item Trigger Error/Debug stream
+    \item ExtMon pixel telescope summary data stream
+    \item ExtMon pixel telescope prescaled raw and intermediate data stream
+    \item ExtMon AFF  summary data stream
+    \item ExtMon AFF prescaled raw and intermediate data stream
+    \item MSTM summary data stream
+    \item MSTM prescaled raw and intermediate data stream
+  \end{enumerate}
+%
+\item Off-Spill
+  \begin{enumerate}
+    \item Trk+Cal triggered data stream
+    \item CRV events matched to triggered data stream
+    \item Trk+Cal events triggered for SiPM pedestal data
+    \item CRV events with SiPM pedestal data
+    \item Calorimeter pulser events
+    \item MSTM summary data stream
+    \item MSTM prescaled raw and intermediate data stream
+  \end{enumerate}
+\end{enumerate}
+
+
+As the stakeholders discuss the strawman, some of the things to think about are:
+
+\begin{enumerate}
+  \item Who are the stakeholders; are they all represented.
+  \item Match to downstream needs while staying within technical limitations
+  \item Put the complexity in a small number of places that can be managed by experts
+  \item If we split the data into more files rather than fewer files, there are per file
+    overheads within the {\code art::DataLogger} processes and the DLLS.  The overheads
+    may be worse for a hybrid RAID array than they are for an all SSD array.
+    We may need to test at scale before we can be sure what will work.
+\end{enumerate}
+
+
+
 
 \chapter{Questions}
 \label{ch:questions}
@@ -905,9 +959,13 @@ Below is a list of questions that must be addressed during the design of the RDM
 \fixme{These are not ordered in any way.  How should we order them?}
 
 \begin{enumerate}
+\item Be sure that all stakeholders are represented at each place
+  \item Be sure to plan a design review and to plan one or more Operational Readiness reviews.
 \item The TDAQ team plans that each of the trigger filter processes will have a unique process name.
   Also each of the {\code artdaq::DataLogger} processes will have a unique name.
-  This will break the current \art implementation of secondary input files; see Section~\ref{appsec:SecondaryInputs}.
+  This may break the current \art implementation of secondary input files; see Section~\ref{appsec:SecondaryInputs}.
+  We should develop a proof of principle demonstration as soon as the TDAQ team can provide examples of files written by
+  the  {\code artdaq::DataLogger}.
 \item The ExtMon summary data will be small, on the scale of 200~KiB per MI cycle.  How will this be aggregated for storage on tape?
   The answer may depend on how it is used in downstream processing.  Is SFA good enough?
 \item Decide on a split level for data products in \art root files.  We now use 99999; CMS uses 0 (or 1, whichever is the smallest allowed).
@@ -1163,8 +1221,9 @@ The lab network.
 
 \begin{enumerate}
   \item We are now writing LT08
-  \item capacity of LT08
   \item Sweet spot is 1000 files per tape; explain why.
+  \item capacity of LT08; speed specs for seek/rewind, read.
+  \item Mount time spec including robot motion
   \item SFA.  What is it; what are it's limitations.
   \item What are our current SFA settings.  How do you look them up.
   \item Prestaging does not update the LRU date.  Nor does touching.  You must read at least one byte.
@@ -1193,10 +1252,14 @@ into the Trk+Cal on-spill file; similarly for off-spill. There is an example of 
 The examples in that repository illustrate two limitations of this feature:
 
 \begin{enumerate}
-  \item The data products in the CRV file must have the same process\_name as the data products in Trk+Cal file.
-  \item One must not use \cmd{noEventSort: false} when doing the merge.
+\item The data products in the CRV file must have the same process\_name as the data products in Trk+Cal file.
+  If they do not, then the CRV events will not be found.
+\item One must not use \cmd{noEventSort: false} when doing the merge;
+  if it is used, then some events will have CRV information and others will not.
 \end{enumerate}
 
+If we need these features the options are to ask the \art team to add them or to write a custom source
+module ourselves.
 
 \section{Events with Very Long Processing Times}
 
