@@ -17,22 +17,23 @@ The full list of computing functions provided by the RDM is:
 \begin{enumerate}
 \item Move data from the online disk buffer to long term storage.
 \item Update the file catalog to include meta-data and file location(s).
-\item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream data processing.
 \item Manage the free space in the online disk buffer.
 \item Manage the free space in the parts of dCache that are critical to data taking.
 \item Copy/mirror subsets of the online databases to the offline databases.
 \item Copy miscellaneous other files, such as the output of the online Data Quality Monitoring (DQM) system, to long term storage.
 \item Provide tools to manage and monitor the RDM system.
+\item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream data processing.
 \item If needed, inform the follow-on workflows when work is ready for them to do.
 \end{enumerate}
 
 
 %The operation and maintenance of the Mu2e building router and the network between the Mu2e Hall and the computer center
 %is the responsibility of the Fermilab Core Computing Division (CCD).
-%The DPS has the responsibility to be the interface between Mu2e and CCD regarding this network.
+%The DPC has the responsibility to be the interface between Mu2e and CCD regarding this network.
 %Details of this responsbility are in Section~\fixme{reference the appropriate section}.
 
-The remainder of Chapter~\ref{ch:intro} will describe some conventions used in this document and
+The remainder of Chapter~\ref{ch:intro} will identify the stakeholders in this work,
+describe some conventions used in this document and
 state some prerequisites that will be needed to understand it.
 Chapter~\ref{ch:SelectedDetails}  of will describe a view of the
 Mu2e Trigger and Data Acquisition system (TDAQ) as seen from the RDM perspective;
@@ -41,11 +42,10 @@ from the RDM perspective.
 Chapter~\ref{ch:DataStreamsAndFileStreams} will define the ideas of data streams and file streams.
 Chapter~\ref{ch:data_streams} will give a strawman list of data streams.
 Chapter~\ref{ch:file_streams} will give a strawman list of file streams.
-Chapter~\ref{ch:requirements} states the requirements for the RDM system.
 Chapter~\ref{ch:questions} lists some questions that will need to answered when designing the system.
+Chapter~\ref{ch:requirements} states the requirements for the RDM system.
 Chapter~\ref{ch:RiskRegistry} describes risks that are known at this time.
-The document includes several appendices that provide some details outside of the main line
-of this document.
+The document includes several appendices that provide additional details.
 
 %The cartoon picture is that TDAQ writes files to a disk buffer and RDM drains the disk buffer.
 %However, there are about 30 data streams, some tightly coupled to each
@@ -67,10 +67,135 @@ the {\code artdaq::DataLogger} processes that run on the Data Logger nodes.
 To avoid confusion with these other uses of ``Data Logger'',
 the name of this task was changed to RDM.
 
+\section{Milestones}
+\label{sec:Milestones}
+
+For reference, the milestones related to the Mu2e Construction Project and Mu2e Operations will
+be discussed in Section~\ref{ssec:ExternalMilestones}.
+The only hard milestone for RDM that is set by these milestones is at the start of
+Commissioning with Beam in early 2025.
+DPC is developing internal milestones to ensure that all DPC deliverables are
+complete and well tested prior to that deadline.
+Section~\ref{ssec:ExternalMilestones} presents the internal milestones.
+
+\subsection{External Milestones}
+\label{ssec:ExternalMilestones}
+
+Mu2e Project is being rebaselined, which means that the external milestones tied to the Mu2e
+Project and Operations schedules are not well known.
+Estimates for the most important dates are given in Table~\ref{tab:externalmilestones};
+these dates have been extracted from
+page 18 of the Ron Ray's presentation at the June 2021 Mu2e Collaboration Meeting~\cite{ProjectUpdate202106}
+and page 35 of Greg Rakness's presentation at the IPR held in February 2021~\cite{OperationsIPR}.
+
+\begin{table}
+\begin{center}
+\caption[Estimates for External Milestones]{Estimates for External Milestones}
+\label{tab:externalmilestones}
+\begin{tabular}{ll}\hline
+  Jan 1, 2023 & Calorimeter fully assembled in Mu2e Hall; begin cosmic ray system test. \\
+  Jul 1, 2023 & Tracker fully assembled in hall; continue cosmic ray system test. \\
+  Oct 1, 2023 & Detector KPP; cosmic ray system test complete. \\
+  Jan 1, 2025 & Begin commissioning with beam. \\
+  Apr 1, 2026 & Begin physics operations. \\
+   \hline
+  \end{tabular}
+\end{center}
+\end{table}
+
+
+\fixme{Do we expect the CRV to be part of the calorimeter only portion of the cosmic ray system test?}
+
+The cosmic ray system test will take place with the detector in the extracted position;
+it will include the tracker, the calorimeter and several modules of the CRV system
+arranged above the other two detectors to form a cosmic ray trigger.
+All will be read out using the TDAQ system.
+
+The detector Key Performance Parameters (KPP)~\cite{Mu2eKPPs},
+both the threshold and the objective versions,
+can be satisfied without the RDM.
+It is sufficient for the data to reach the disk buffer in the online system
+and to be reconstructed by code running on the online system.
+
+The 15 month period between the Detector KPP and the start of commissioning with beam will be used
+to complete the solenoid installation,
+map the magnetic field,
+insert the detector train into the Detector Solenoid (DS),
+install shielding
+and install the CRV system.
+During this period the detector will take cosmic rays whenever possible.
+These will fall into two categories:
+brief runs to test if any functionality has been impaired by recent actvities;
+long runs while other activities are taking place in the Mu2e Hall.
+
+In summary, the one external hard deadline is to have a fully functional RDM system before the start of
+Commisioning with Beam.
+The next section will discuss the internal milestones set to ensure that this external milestone is met.
+
+\subsection{Internal Milestones}
+\label{ssec:InternalMilestones}
+
+Table~\ref{tab:internalmilestones} presents a strawman for internal milestones.
+The pattern is to plan an Operational Readiness Review 3 months prior to each external
+milestone and to set an internal milestone 3 months before that.
+Part of job that is being defined by this document is to define the content of each phase.
+
+\fixme{These are still strawman milestones.  We need to discuss them and define them more clearly.
+  These are aggresive deadlines.  I am still anxious that we won't have the staff to meet aggressive deadlines; so why set them?}
+
+\begin{table}
+\begin{center}
+\caption[Strawman Interal Milestones]{Strawman Internal Milestones}
+\label{tab:internalmilestones}
+\begin{tabular}{ll}\hline
+  Jul 1, 2022 & Phase 1 system; ready for Calorimeter only portion of the cosmic ray system test. \\
+  Oct 1, 2023 & ORR for Phase 1 system. \\
+  Jan 1, 2023 & Phase 2 system; ready for for the full cosmic ray system test. \\
+  Apr 1, 2023 & ORR for Phase 2 system. \\
+  Jul 1, 2024 & Phase 3 system; ready for commissioning with beam. \\
+  Sep 1, 2024 & ORR for Phase 3; \\
+   \hline
+  \end{tabular}
+\end{center}
+\end{table}
+
+
+Notes to add:
+\begin{itemize}
+  \item What about Tracker VST and other VSTs?
+  \item Use VSTs to test prototypes for phase 1
+  \item Use Phase N-1 to test Phase N.
+  \item While running with cosmic rays, expect low data volume but frequent changes to details.
+    Can use this to demonstrate agility.
+\end{itemize}
+
+
 \section{Stakeholders}
 \label{sec:stakeholders}
 
-\fixme{Who are the stakeholders.}
+The stakeholders are:
+\begin{enumerate}
+  \item The Mu2e Operations organization.  The head is Greg Rakness.
+  \item The DPC organization within Mu2e Ops.  The head is Rob Kutschke.
+  \item The RDM team within DPC; not yet formed.  The role is being filled for now by Rob Kutschke and Ray Culbertson.
+  \item The Pass1 team within DPC; not yet formed. The role is being filled for now by Rob Kutschke and Ray Culbertson.
+  \item The TDAQ L2 within the Mu2e Construction Project.  The L2 manager is Ryan Rivera.  Eric Flumerfelt is also a critical member \fixme{Is Eric an L3?}.
+  \item The TDAQ organization within Mu2e Ops. The head is Bertrand Echenard.
+  \item The Mu2e Trigger group within the Mu2e Collaboration.  The co-conveners are Bertrand Echenard and Giani Pezzullo.
+  \item The Mu2e Computing and Software group.  The co-conveners are Dave Brown (LBL) and Rob Kutschke.
+  \item The Mu2e sub detector groups.  Are we correctly describing their raw data and what they want us to do with it?  \fixme{Ask leads to name delegates}
+    \begin{enumerate}
+      \item Tracker: Bob Tschirhart or delegate
+      \item Calorimeter: Stefano Misceti or delegate
+      \item CRV:  Craig Dukes or delegate
+      \item ExtMon: Matthew Jones or delegate
+      \item MSTM: Jim Miller or delegate
+      \item PTSM: Kevin Lynch or delegate
+    \end{enumerate}
+  \item Representatives from ongoing DAQ work, such as the Tracker VST; the contact is Richie Bonventre.
+  \item The Mu2e collaboration. The collaboration will be part of deciding the big picture needs for downstream data processing.
+    Co-spokespersons Jim Miller and Bob Bernstein.
+\end{enumerate}
 
 \section{Conventions Used in this Document}
 \label{sec:conventions}
@@ -78,7 +203,7 @@ the name of this task was changed to RDM.
 In this document the word ``computer center'' is used as a collective noun for the
 Feynman Computing Center (FCC) and the Grid Computing Center (GCC).
 When it is important to distinguish the two, one of the two will be named explicitly.
-This language allows for changes to the computing center infrastructure over the
+This language also allows for changes to the computing center infrastructure over the
 lifetime of Mu2e.
 
 The DPC is not part of the Mu2e Construction Project but it is part of Mu2e Operations
@@ -94,8 +219,8 @@ The phrase ``detector readout electronics'' is intended as collective noun for a
 up to and including the Read Out Controller (ROC) chips; it does not include
 the Data Transfer Controllers (DTC).
 
-This document groups triggers into primary triggers and support triggers.
-These ideas are defined in reference~\cite{TriggerSU2020}.
+This document uses the terminology ``primary triggers'' and ``support triggers'';
+these ideas are defined in reference~\cite{TriggerSU2020}.
 
 
 
@@ -115,10 +240,11 @@ This document assumes that the reader has basic familiarity with the \art event 
 \end{enumerate}
 
 It is a assumed that the reader has basic familiarity with SAM, dCache, ENSTORE and submitting grid jobs.
+This includes understanding the ideas of File Families and Small File Aggregation (SFA).
 Some details about tapes are given in Appendix~\ref{app:AboutTapes}.
 
 It is assumed that the reader knows the Mu2e standards and practices regarding SAM file names\cite{Mu2eSAM}
-and location of files in tape backed dCache\cite{FileNames}.
+location of files in tape backed dCache\cite{FileNames}, and file families.
 
 
 \chapter{Interfaces}
@@ -137,19 +263,19 @@ This section briefly describes the elements of the Mu2e Online system that the r
   Shifters will modify run configurations, start runs and stop runs using OTS DAQ.
 \item[OTS DB] OTS DAQ stores its configurations in an instance of a MongoDB database.  This is variously called the ``OTS database'' or the ``Mongo database''.
   Other uses of this database will be discussed later in this document. \fixme{reference to online conditions db; may also store run summary info here}.
-\item[\artdaq] The software used to control processes and to move data between processes on the TDAQ Server and TDAQ Data Logger nodes.
+\item[\artdaq] The software used to control processes and to move data between processes on the TDAQ Servers and the TDAQ Data Logger machines.
 \item[DCS] ``Detector Control System''.
   For details see~\cite{DCSSpec};
   this is also known as the ``slow control system'' or the ``EPICS system''
   Its functions include:
   \begin{enumerate}
-    \item Turn hardware on and off. Set voltages and hardware limits.
+    \item Set hardware configurations and limits, for example, voltages.  Turn hardware on and off.
     \item Read back and store process variables (PV) such as voltages, currents, temperatures, heartbeats etc.
     \item Monitor PVs: alarm if out of tolerance; display timelines on request.
   \end{enumerate}
 \item[EPICS] The name of software technology used to implement the DCS.
 \item[EPICS DB] EPICS stores its PV+timestamp data in a relational database.
-  This is often called the ``EPICS DB'' but it's a misnomer because it will likely use
+  This is often called the ``EPICS DB'' but this is a misnomer because it will likely use
   a general purpose relational database that will be used by EPICS
   and by other online software.
 \end{description}
@@ -171,9 +297,8 @@ are not shown and the RDM will treat these resources as a interconnected, cohere
 The Mu2e building router and the optical fiber that connects that router
 to the computer center are the responsibility of CCD;
 see Appendix~\ref{app:RouterAndNetwork} for details.
-The right hand box shows that Mu2e Offline data processing workflows
-will read data from storage in the computer center,
-process it,
+The right hand dot-dashed box names some of Mu2e Offline data processing workflows
+that will read data from storage in the computer center, process it,
 and write data back to storage computer center.
 The first workflow in this chain is Pass1, which will run soon after new files
 are resident on storage in the computer center and are registered in the file catalog;
@@ -217,9 +342,9 @@ Finally, there will be special data streams for calibrations.
 The base design is to have a two data logger nodes that receive the data from all DAQ server nodes
 and write it to files in the DLLS.
 The data logger nodes will write several files, each containing events selected by a different algorithm.
-Details can be found in Chapter~\ref{ch:DataStreamsAndFileStreams}.
+Details can be found in Chapters~\ref{ch:DataStreamsAndFileStreams} through~\ref{ch:file_streams}.
 
-The Data Logger nodes will also have a process called a ``Dispatcher''
+The Data Logger nodes will also host a process called a ``Dispatcher''
 that requests events from the DAQ and forwards them to clients.
 The Dispatcher is designed to exert no back pressure on the DAQ
 and, therefore, will normally see only a subset of the events.
@@ -231,7 +356,7 @@ files in the data logger local storage.  One of the jobs of the RDM will be
 to move these files to long term storage.
 
 All of the computing resources in the TDAQ farm are on a private subnet
-and cannot been seen from the lab network.  Access in and out
+that cannot been seen from the lab network.  Access in and out
 of the private subnet will be via a gateway node that is connected to
 both the private subnet and the lab network.
 Purchasing and maintaining the gateway node is the responsibility of the TDAQ group.
@@ -243,7 +368,7 @@ to the computer center using this router and the lab optical fiber network.
 The router is a standard item that CCD uses in many places and it stocks spares.
 CCD is responsible for the maintenance of both the router and the network.
 See Appendix~\ref{app:RouterAndNetwork} for the
-specs for the router and details of the arrangement with with CCD,
+specs of this router and for details of the arrangement with with CCD,
 including costs that must be paid by Mu2e to CCD for this service.
 
 
@@ -260,7 +385,7 @@ when to make the transition to RUCIO.
 \section{The EventWindowTag and the EventMode}
 \label{sec:EWTagAndEventMode}
 
-The heart of the TDAQ system is the Command Fan-Out (CFO) that delivers
+The heart of the TDAQ system is the Command Fan-Out (CFO), an FPGA that delivers
 configuration information and timing signals to all elements of the DAQ.
 The inputs to the CFO are the RF0 signal from the accelerator
 and a Run Plan that comes from OTS DAQ.
@@ -384,16 +509,17 @@ The design of the Mu2e TDAQ system is that trigger processing lags the incoming 
 during the on-spill period and catches up during the off-spill period.  There is
 buffering at various places in the TDAQ system to support this.
 
-It's possible that the MI cycle might need to be increased to 22 Booster cycles;
+It's possible that the MI cycle might need to be increased to 22 Booster cycles to
+allow for hysteresis in the MI electromagnets;
 should that happen the additional time will be allocated to a longer off-spill period.
 This does not significantly change the requirements for the RDM.
 
 Mu2e plans to start operations with a slightly different configuration:
 4 spills instead of 8, where each spill has a longer duration than 43.1~ms;
-this mode is called ``one bunch'' running or ``Phase~1'' running;
-the 8 spill configuration is called ``two bunch'' running or ``Phase~2'' running.
-The data volume produced in one bunch running will be about 60\% of that produced
-in two bunch running; otherwise the requirements for the two are the same.
+this mode is called ``one batch'' running or ``Phase~1'' running;
+the 8 spill configuration is called ``two batch'' running or ``Phase~2'' running.
+The data volume produced in one batch running will be about 60\% of that produced
+in two batch running; otherwise the requirements for the two are the same.
 
 There will be times when Mu2e is taking data but NOvA is not.
 In such times, the base plan is that Mu2e will continue to take data using the same MI cycle of 21 Booster cycles.
@@ -404,8 +530,8 @@ the production target will have a reduced lifetime at higher average beam power;
 the TDAQ system cannot accommodate a significantly higher event rate because it
 uses the off-spill period to catch up on buffered events.
 
-\fixme{Is the following correct: these limitations have some headroom during one bunch running;
-  so we could see a shorter MI cycle during one bunch running.}
+\fixme{Is the following correct: these limitations have some headroom during one batch running;
+  so we could see a shorter MI cycle during one batch running.}
 
 \section{EventIDs, Runs and Subruns}
 \label{sec:TagsIDsRunsSubRuns}
@@ -413,13 +539,14 @@ uses the off-spill period to catch up on buffered events.
 
 Mu2e uses the \art event processing framework;
 the trigger filter processes that run in the trigger farm will each be a separate \art process;
+the {\code artdaq::DataLogger} processes will each be \art processes;
 \art will also be used for offline data processing.
 In \art, events are uniquely identified by a 3 part identifier called an
 {\code art::EventID}; the parts are named run number, subrun number
 and event number.
 
 Within the DAQ system, event fragments and fully assembled events
-are identified by the Event Window Tag (EWT).
+are identified by their Event Window Tag (EWT).
 The DAQ system will translate each EWT to an {\code art::EventID}
 before events are presented to the \art based software filter processes~\cite{EventLabels}.
 The mapping of EWT to  {\code art::EventID} will be unique and
@@ -442,8 +569,8 @@ while subruns will contain an integer number of MI cycles and
 have a duration somewhere between 14 seconds and a few minutes.
 This means that each subrun will contain both on-spill and
 off-spill events.
-The transition between subruns will happen during the off-spill period;
-this ensures that each on-spill period is contained within a single subrun.
+The transition between subruns will happen during the off-spill period,
+which ensures that each on-spill period is contained within a single subrun.
 
 These durations are informed by the following.
 Mu2e has designed a conditions management system
@@ -461,7 +588,7 @@ but that data taking will pause for a few minutes at run transitions.
 At each run transition the TDAQ system will do some house keeping,
 including resetting some hardware, reloading some firmware and restarting some processes.
 These steps are designed to cure any Single Event Upsets (SEU) in the firmware
-and to generally ensure a robust TDAQ system.
+and to cure any configuration drift or system lockup.
 Therefore a run should be long enough that the dead time
 caused by the run transition is a small fraction of the total run time
 but short enough that the resets occur frequently enough
@@ -481,7 +608,7 @@ various detector subsystems flows from the detector to the DLLS.
 This will help explain why the data organization in the DLLS is what it is.
 The text in this section refers to Figure~\ref{fig:filesDLLS}.
 These descriptions are only high level overviews,
-intended to convey enough information to design the RMD and no more.
+intended to convey enough background information to design the RMD.
 
 \fixme{References to the full TDAQ docs.}
 
@@ -497,7 +624,7 @@ intended to convey enough information to design the RMD and no more.
 \subsection{Tracker and Calorimeter}
 \label{ssec:TrkAndCal}
 
-Data flows from the tracker and calorimeter into FPGAs mounted on the PCIe bus of 36 of 40 DAQ servers;
+Data flows from the tracker and calorimeter into FPGAs mounted on the PCIe bus of 36 of the 40 DAQ servers;
 these FPGAs are called Data Transfer Controllers (DTC).
 All DTCs on these 36 DAQ servers communicate with each other over a high speed switch
 and perform event building.
@@ -539,7 +666,7 @@ increasing order of {\code art::EventID}.
 }
 
 The trigger filters make a trigger decision on each event.
-The current design is that about 1 in 400 events will pass the trigger;
+The current expectation is that about 1 in 400 events will pass the trigger;
 this includes all events that pass the primary or support triggers
 and prescaled events that fail at selected places during trigger processing;
 random triggers are included in the last category.
@@ -560,11 +687,13 @@ for example all on-spill events to one file and all off-spill events to another.
 It has yet to be determined exactly how many files will be written
 by each {\code artdaq::DataLogger}.
 
+\begin{sloppypar}
 Because different events have very different trigger processing times
 and because {\code artdaq::EventBuilder} processes can draw events from
 any of the {\code artdaq::BoardReader} processes, events will arrive at the
 {\code artdaq::DataLogger} out of order.  In particular, early events from subrun N+1
 may arrive at an {\code artdaq::DataLogger} before the last event from subrun N.
+\end{sloppypar}
 
 The TDAQ base design has two Data Logger nodes, each running an
 {\code artdaq::DataLogger} process that will receive tracker and calorimeter events.
@@ -618,19 +747,19 @@ decide if the responsibility for this job is part of the RDM or if it is part of
 
 \begin{sloppypar}
 The original design of the TDAQ was the that an {\code artdaq::DataLogger} process
-would receive the tracker and calorimeter information for trigger events
+would receive the tracker and calorimeter information for triggered events
 and buffer it internally until the CRV information arrived.
 After the CRV information arrived,
 the {\code artdaq::DataLogger} process would write an event containing information from all 3 subsystems.
-Later the TDAQ team became concerned that this scheme would not work because
+As the TDAQ design matured, the TDAQ team became concerned that this scheme would not work because
 the tail to long processing times in the trigger filters would exceed the buffering capacity within
 the CRV readout electronics.
-Therefore this plan was replaced with the two file solution.
+Therefore this plan was replaced with that described above.
 \end{sloppypar}
 
 The light sensors for the CRV system are Silicon Photo multipliers (SiPM).
 The CRV team have requested that, during off-spill running,
-TDAQ acquire as large a sample of SiPM noise as is practical;
+TDAQ acquire as large a sample of untriggered SiPM data as is practical;
 they will use this data to study the time dependence of the SiPM pedestals.
 This data is sometimes called ``SiPM noise data'' or ``SiPM pedestal data''.
 
@@ -711,10 +840,8 @@ data from {\code artdaq::BoardReader} processes on other DAQ servers.
 }
 
 
-\fixme{Understand some more about the mechanics.  Are there {\code artdaq::DataLogger} processes involved.
-  How is data transferred to the data logger node?  Eric says no NSF mount because of reliability.  So
-  something else.  Should I say anything about how this summary data will be used?  It is likely just
-  going to a database.
+\fixme{If the data does not flow through {\code artdaq::DataLogger} what will it be?
+  Eric says no NSF mount on the DAQ servers because of reliability.  So something else?
   }
 
 \subsection{Muon Stopping Target Monitor}
@@ -731,7 +858,8 @@ The crystals and collimators are aligned so that the crystals will see X-rays an
 produced in the Muon stopping target foils.
 The process of muon capture on the stopping target foils emits characteristic X-ray and gamma ray
 lines and the intensity of these lines is proportional to the number of stopped muons.
-The MSTM detectors will measure the energy of each photon and accumulate a pulse height spectrum over a period of a few minutes.
+The MSTM detectors will measure the energy of each photon that it sees
+and will accumulate an energy spectrum over a period of a few minutes.
 The plan is to measure the intensity of the characteristic narrow lines in each spectrum and,
 from that, infer the number of muons that have stopped in the stopping target.
 
@@ -784,7 +912,7 @@ calorimeter and CRV at the same time.  The tasks to be done by Pass1 include,
   \item Perform complete reconstruction using the best available calibrations.
   \item Produce high level metrics for nearline DQM.
   \item Select events that will be used to produce the next iteration of calibrations
-  \item Select events for use in studies.
+  \item Select events for use in other studies.
   \item Perform any reshaping or reorganization of the data that was deferred from RDM.
   \item Select events to proceed to the next stage of processing. \fixme{Or maybe Pass2 will also start with raw data?}
 \end{enumerate}
@@ -801,8 +929,8 @@ The plan for the RDM is that, under normal operating conditions,
 files should be in the computer center within a few minutes of the file being closed
 by the TDAQ system.
 
-\fixme{Do we need to say more here? Should we make ``a few'' quantitative, for
-example within 10 minutes 9x\% of the time?}
+\fixme{Do we need to say more here? Do we want an more explicit time budget for the
+  RDM component of the overall latency? Maybe example within 10 (20?)  minutes 9x\% of the time?}
 
 
 \chapter{Data Streams and File Streams}
@@ -810,7 +938,7 @@ example within 10 minutes 9x\% of the time?}
 
 This chapter defines the ideas of ``data streams'' and ``file streams''.
 It enumerates the data streams that are anticipated at this time
-and it presents a straw man for how these may be grouped into files.
+and it presents a strawman for how these may be grouped into files.
 
 \fixme{Should I use the word ``data set'' instead of ``file stream''?
   I am using a distinct word for now since I want to reserve the word
@@ -913,7 +1041,7 @@ be reduced to 1, 2 or 3 files.
   \begin{enumerate}
     \item Trk+Cal stream
     \item CRV stream
-    \item Intenisty stream
+    \item Intensity stream
     \item Trigger Error/Debug stream
     \item ExtMon pixel telescope summary data stream
     \item ExtMon pixel telescope prescaled raw and intermediate data stream
@@ -959,94 +1087,109 @@ Below is a list of questions that must be addressed during the design of the RDM
 \fixme{These are not ordered in any way.  How should we order them?}
 
 \begin{enumerate}
-\item Be sure that all stakeholders are represented at each place
-  \item Be sure to plan a design review and to plan one or more Operational Readiness reviews.
-\item The TDAQ team plans that each of the trigger filter processes will have a unique process name.
-  Also each of the {\code artdaq::DataLogger} processes will have a unique name.
-  This may break the current \art implementation of secondary input files; see Section~\ref{appsec:SecondaryInputs}.
-  We should develop a proof of principle demonstration as soon as the TDAQ team can provide examples of files written by
-  the  {\code artdaq::DataLogger}.
-\item The ExtMon summary data will be small, on the scale of 200~KiB per MI cycle.  How will this be aggregated for storage on tape?
-  The answer may depend on how it is used in downstream processing.  Is SFA good enough?
-\item Decide on a split level for data products in \art root files.  We now use 99999; CMS uses 0 (or 1, whichever is the smallest allowed).
-\item How will Pass1 and other follow-on workflows know that new data has arrived?
-  Will it be driven entirely by updates to the file catalog or do we need other
-  hooks to those workflows?
-\item Does it make sense to consider POMS to drive the workflow of RDM?
-\item Does RDM have any responsibilities to move information from EPICS to offline?
-\item Mu2e needs to manage the free space in /pnfs/mu2e/persistent. Many parts of DPC will touch this space.
-  Whose job is it to ensure what there is adequate free space? Maybe RDM should have a separate dCache
-  partition to isolate it from issues caused by other users?
-\item What does it mean for a file to be ``on tape'' and therefore deletable?
-  For example, if it's in both persistent and tape backed dCache, but not yet on tape, is that good enough?
-\item Work with TDAQ to define a policy for locating files within the DLLS.
-\item Revisit the question of keeping N hours of free space in the DLLS vs aggressively deleting files to keep
-  maximum free space.  If we decide to change then we need to update the requirements.
-\item Update data size estimates; using the design DLLS size, how many hours of buffer do we have?  Is it good enough?
-  If not, do we ask TDAQ to buy more space or do we live with a shorter maximum buffering time?
-  The size of the buffer will not be an issue until we are commissioning with beam so this does not need to
-  be addressed soon and it need not be on-project.
-\item Work with the TDAQ team to define a protocol for TDAQ to inform us when new files are available.
-  My instinct is that we don't to walk the file system discover files that need to be moved to tape.
-  I prefer that we receive a message and manage a queue; this implies persistency for the queue state
-  and error recovery tools.
-  Should this be raised to a requirement?
-\item
-  Think about recovering from from a long network or dCache downtime:
-  we will want to identify pairs of a Trk+Cal file and its matching CRV file and move these pairs as a unit;
-  we do not want catch up processing delayed while one file is on dCache but it's partner is not.
-  Do have a operations based preference for LIFO vs FIFO? What about all on-spill before any off-spill?
-\item Corner cases to manage:
-  \begin{enumerate}
-    \item Files or subruns that contain zero events.
-    \item If data taking is paused, does RMD need to know that?  If so, how will it be notified?
-    \item When data taking has stopped for more than a few minutes (say a 15 minute maintenance access ),
-      we probably want to flush the system to make sure that all data is processed to the end of Pass1
-      in a timely fashion.
-      This is only relevant if there are synchronization points in the workflows in which processing
-      subrun N waits subrun N+1 before it takes the next step.
-    \item A variant on the previous item.  Suppose we are making tar files to archive read-rarely small
-      files, such as the ExtMon summary data.
-      If there is a pause in data taking, when do we decide to make a small tarball and when
-      do we wait for more files?  And the same question if we choose an aggregation method that is not
-      tar files.
-    \item If a shifter marks a run as bad, do we still want to run Pass1?
-  \end{enumerate}
-\item   When do we move SAM to RUCIO? As soon as we can? During the long shutdown or later?  Never?
-  How will an early-ish transition interact with requirements for ongoing simulation, VST and test stand work?
-  Can both SAM and RUCIO coexist?
-\item Work with TDAQ to understand the constraints that drive the choices of how to
-  map data streams to file streams.
-  \begin{enumerate}
-    \item A separate file stream for the intensity stream.
-    \item split on-spill and off-spill to separate file streams
-    \item split off-spill into triggered and pedestal.
-  \end{enumerate}
-\item Where in the workflow will we merge each Trk+Cal file with it's matching CRV file?
-  It could be in either RDM or Pass1; so we will need to discuss with the Pass1 team.
-\item Check with TDAQ: will you close an output file every subrun and open a new one? Will it be the same
-  on all file streams or can it differ?  What's the plan to deal with a subrun transition when one
-  event is very late arriving?  How does that last case affect RDM?
-\item At one time it looked like the raw data format for the CRV might be very inefficient
-  because every header had to be present even if there was no associated data.
-  One mitigation that was discussed was to reformat the raw data after it was in dCache and before it was written to tape.
-  The other mitigation was to change the off-spill event duration to 100~$\mu$s; did that provide enough mitigation for off-spill events?
-  For on-spill events the CRV data is small part of the whole; is it worthwhile to improve efficiency on a small part of the whole?
-  What do we need to do here?  Does this belong in the risk registry?
-\item This document has some implicit assumptions.  Are they still correct?  Where should we write them down to make them explicit:
-  \begin{enumerate}
-  \item The unit of data processing will be an integer number of files; because of atomic subruns, this implies an integer number
-    of complete subruns.
-  \item Files must be small enough to be processed in under a few hours.
-  \item The unit of checkpointing will be one grid job.
-  \end{enumerate}
+  \item Be sure that all stakeholders are represented when making decisions.
+  \item Eric Flumerfelt says that he envisages the gateway machine as a minimal machine.  Will this meet our needs?
+    If not then we need spec an appropriate machine and work with the TDAQ L2 and the TDAQ (pre)Ops to ensure an appropriate
+    machine. It's very likely that we can live with a minimal machine until the start of commissioning with beam.
+  \item Is there plan for a hot spare for the gateway machine? If not, what about a cold spare?
+    This will be the responsibility of TDAQ (pre) Ops.  We need an understanding with them.
+  \item I understand that the machines in the TDAQ farm, including the gateway machine, will be admin by SCD personnel.  Make sure that
+    RDM interests are presented in agreements with SCD.
+  \item Do we need dedicated computing resources in the computer center? Is it good enough to request additional VMs configured similar to
+    the mu2egpvm machines?  If not, what are our options?  In all cases understand who admins the machines, hot spares or cold spares.
+    Remember that the reason that SCD likes to support VMs is that it's very easy to stand up a replacement if a host dies.
+  \item Be sure to plan one or more design reviews and one or more Operational Readiness reviews.
+  \item The TDAQ team plans that each of the trigger filter processes will have a unique process name.
+    Also each of the {\code artdaq::DataLogger} processes will have a unique name.
+    This may break the current \art implementation of secondary input files; see Section~\ref{appsec:SecondaryInputs}.
+    We should develop a proof of principle demonstration as soon as the TDAQ team can provide examples of files written by
+    the  {\code artdaq::DataLogger}.
+  \item The ExtMon summary data will be small, on the scale of 200~KiB per MI cycle.  How will this be aggregated for storage on tape?
+    The answer may depend on how it is used in downstream processing.  Is SFA good enough?
+  \item Decide on a split level for data products in \art root files.  We now use 99999; CMS uses 0 (or 1, whichever is the smallest allowed).
+  \item Do we need to extend our file families.  For example does it make sense to store on-spill triggered events on the same tapes as SiPM pedestal data?
+  \item Work with the collaboration to understand the downstream processing plans for all data streams.  Use this to inform what we do with
+    files once they are in dCache,
+
+  \item How will Pass1 and other follow-on workflows know that new data has arrived?
+    Will it be driven entirely by updates to the file catalog or do we need other
+    hooks to those workflows?
+  \item Does it make sense to consider POMS to drive the workflow of RDM?
+  \item Does RDM have any responsibilities to move information from EPICS to offline?
+  \item Mu2e needs to manage the free space in /pnfs/mu2e/persistent. Many parts of DPC will touch this space.
+    Whose job is it to ensure what there is adequate free space? Maybe RDM should have a separate dCache
+    partition to isolate it from issues caused by other users?
+  \item What does it mean for a file to be ``on tape'' and therefore deletable?
+    For example, if it's in both persistent and tape backed dCache, but not yet on tape, is that good enough?
+  \item Work with TDAQ to define a policy for locating files within the DLLS.
+  \item Revisit the question of keeping N hours of free space in the DLLS vs aggressively deleting files to keep
+    maximum free space.  If we decide to change then we need to update the requirements.
+  \item Update data size estimates; using the design DLLS size, how many hours of buffer do we have?  Is it good enough?
+    If not, do we ask TDAQ to buy more space or do we live with a shorter maximum buffering time?
+    The size of the buffer will not be an issue until we are commissioning with beam so this does not need to
+    be addressed soon and it need not be on-project.
+  \item Work with the TDAQ team to define a protocol for TDAQ to inform us when new files are available.
+    My instinct is that we don't to walk the file system discover files that need to be moved to tape.
+    I prefer that we receive a message and manage a queue; this implies persistency for the queue state
+    and error recovery tools.
+    Should this be raised to a requirement?
+  \item Think about recovering from from a long network or dCache downtime:
+    we will want to identify pairs of a Trk+Cal file and its matching CRV file and move these pairs as a unit;
+    we do not want catch up processing delayed while one file is on dCache but it's partner is not.
+    Do have a operations based preference for LIFO vs FIFO? What about all on-spill before any off-spill?
+  \item Corner cases to manage:
+    \begin{enumerate}
+      \item Files or subruns that contain zero events.
+      \item If data taking is paused, does RMD need to know that?  If so, how will it be notified?
+      \item When data taking has stopped for more than a few minutes (say a 15 minute maintenance access ),
+        we probably want to flush the system to make sure that all data is processed to the end of Pass1
+        in a timely fashion.
+        This is only relevant if there are synchronization points in the workflows in which processing
+        subrun N waits subrun N+1 before it takes the next step.
+      \item A variant on the previous item.  Suppose we are making tar files to archive read-rarely small
+        files, such as the ExtMon summary data.
+        If there is a pause in data taking, when do we decide to make a small tarball and when
+        do we wait for more files?  And the same question if we choose an aggregation method that is not
+        tar files.
+      \item If a shifter marks a run as bad, do we still want to run Pass1?
+    \end{enumerate}
+  \item   When do we move SAM to RUCIO? As soon as we can? During the long shutdown or later?  Never?
+    How will an early-ish transition interact with requirements for ongoing simulation, VST and test stand work?
+    Can both SAM and RUCIO coexist?
+  \item Work with TDAQ to understand the constraints that drive the choices of how to
+    map data streams to file streams.
+    \begin{enumerate}
+      \item A separate file stream for the intensity stream.
+      \item split on-spill and off-spill to separate file streams
+      \item split off-spill into triggered and pedestal.
+    \end{enumerate}
+  \item Where in the workflow will we merge each Trk+Cal file with it's matching CRV file?
+    It could be in either RDM or Pass1; so we will need to discuss with the Pass1 team.
+  \item Check with TDAQ: will you close an output file every subrun and open a new one? Will it be the same
+    on all file streams or can it differ?  What's the plan to deal with a subrun transition when one
+    event is very late arriving?  How does that last case affect RDM?
+  \item At one time it looked like the raw data format for the CRV might be very inefficient
+    because every header had to be present even if there was no associated data.
+    One mitigation that was discussed was to reformat the raw data after it was in dCache and before it was written to tape.
+    The other mitigation was to change the off-spill event duration to 100~$\mu$s; did that provide enough mitigation for off-spill events?
+    For on-spill events the CRV data is small part of the whole; is it worthwhile to improve efficiency on a small part of the whole?
+    What do we need to do here?  Does this belong in the risk registry?
+  \item This document has some implicit assumptions.  Are they still correct?  Where should we write them down to make them explicit:
+    \begin{enumerate}
+      \item The unit of data processing will be an integer number of files; because of atomic subruns, this implies an integer number
+        of complete subruns.
+      \item Files must be small enough to be processed in under a few hours.
+      \item The unit of checkpointing will be one grid job.
+    \end{enumerate}
 \end{enumerate}
 
 
 \chapter{Requirements}
 \label{ch:requirements}
 
-This chapter lists requirements for the RDM system.
+The RDM team will develop a phased plan that will satisfy the requirements listed below
+and will meet the milestones discussed in Section~\ref{sec:Milestones}.
+
 
 \begin{enumerate}
 \item Move data from DLLS to long term storage in a timely fashion.
@@ -1074,17 +1217,18 @@ This chapter lists requirements for the RDM system.
    \item Ensure that there is adequate free space to write N more hours of data (maybe 6 hours?).
    \item Keep track of which files are deletable because they are already on tape or otherwise have redundant copies in the offline world.
    \item Periodically delete files to ensure a)
-   \item There needs to be a way to keep some files on disk in the online system for an extended period so that
+   \item Provide a mechanism to keep some files on disk in the online system for an extended period so that
      people can do studies on them using online resources. One way is to provide
      a method to pin files in the DLLS.  An alternate solution is to carve out a different piece of disk
      space for this use.
      What ever solution is chosen, it must not disrupt data taking.
-   \item Tell online to stop data taking if the disk is full.
+   \item Tell OTS DAQ to stop data taking if the disk is full.
   \end{enumerate}
-\item If we are using persistent dCache, then the RDM must also manage free space in persistent dCache.
+\item Manage free space in persistent dCache and other offline storage resources that we use.
 \item Provide a way to control and monitor all parts of the RDM; the monitoring system should raise warnings or alarms when appropriate.
 \item If Mu2e needs to split/join or otherwise reshape the data from the DLLS before it is written to tape, do this work.
-    This task will be performed using offline resources because there are no resources in the online world to do it.
+  This task will be performed using offline resources because there are no resources in the online world to do it.
+\item If needed, inform the follow-on workflows when data is ready for them.
 \end{enumerate}
 
 Some comments about the requirements.
@@ -1108,7 +1252,8 @@ it is available for understanding emergencies.
 \section{Non-atomic Subruns from TDAQ}
 \label{sec:Risk:NonAtomicSubruns}
 
-The TDAQ group plans that each file stream created by TDAQ will have atomic subruns~\ref{ch:AtomicSubrunsExtendedDefinition}.
+The TDAQ group plans that each file stream created by TDAQ will have atomic subruns;
+see Appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a definition of atomic subruns.
 There is a risk that resource limitations will not allow this and, within some file streams,
 events from one subrun will be spread over 2 or more files.  It will not be possible
 to test the TDAQ design at scale until all equipment has been purchased and deployed.

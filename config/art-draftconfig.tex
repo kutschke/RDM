@@ -1,7 +1,7 @@
 % Include this to produce a draft version on the document.
 \usepackage[pagewise]{lineno}
 \linenumbers
-\renewcommand{\fixme}[1]{\textbf{FIXME:} \textit{#1}}
+\renewcommand{\fixme}[1]{{\color{red}{\textbf{FIXME:} \textit{#1}}}}
 \renewcommand{\lbnepagestyle}{glossy}
 
 \renewcommand{\ifixme}[1]{{\slshape\color{cyan}\textbf{FIXME: } #1}}
