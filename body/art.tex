@@ -1,0 +1,49 @@
+\chapter{Things to Know About \art}
+\label{app:Aboutart}
+
+This appendix describes features and limitations of art that might influence the design
+of the RDM.
+
+\section{Event Order }
+\label{appsec:EventOrder}
+
+When \art reads an input file, its default is to read the events in order of increasing {\code art::EventID}.
+Instead \art can be told to read the events in the order in which they were written to the file; to do this
+add the following to the configuration of {\code RootInput}: \cmd{noEventSort: false}.
+Both options have costs and it may be important to make an informed decision about which costs to incur when.
+
+\section{Secondary Inputs}
+\label{appsec:SecondaryInputs}
+
+The current plan is to use the secondary input feature of \art to merge the CRV on-spill file
+into the Trk+Cal on-spill file; similarly for off-spill. There is an example of using this feature in the GitHub repository:
+\href{https://github.com/kutschke/SecondaryInputs.git}{https://github.com/kutschke/SecondaryInputs.git}.
+The examples in that repository illustrate two limitations of this feature:
+
+\begin{enumerate}
+\item The data products in the CRV file must have the same process\_name as the data products in Trk+Cal file.
+  If they do not, then the CRV events will not be found.
+\item One must not use \cmd{noEventSort: false} when doing the merge;
+  if it is used, then some events will have CRV information and others will not.
+\end{enumerate}
+
+If we need these features the options are to ask the \art team to add them or to write a custom source
+module ourselves.
+
+\section{Events with Very Long Processing Times}
+
+Suppose that, for a particular event, one module is taking a very long time to process,
+perhaps 100~ms or even a few seconds.  \art does not have the ability to interrupt
+that module, mark the event for special treatment and continue the job.  The options are:
+
+\begin{enumerate}
+  \item Let the job continue to run and hope that it finishes soon enough.
+  \item Kill the processes and restart it.
+\end{enumerate}
+
+There are two other mitigations that Mu2e can do:
+\begin{enumerate}
+  \item Identify events that are likely to take a very long time to process and send them through a different trigger path.
+  \item Identify algorithms that are vulnerable to very long tails in execution time and provide breakout points.
+\end{enumerate}
+

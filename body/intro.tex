@@ -1,0 +1,247 @@
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Overview}
+\label{sec:overview}
+
+The Mu2e Raw Data Mover (RDM) System is an element of Mu2e Data Processing
+and Computing (DPC)~\cite{DPC}, an L2 project within Mu2e Experiment Operations Plan~\cite{PEOP}.
+Its purpose is to move data
+that is produced by the online system to long term storage;
+for most data, the long term storage will be files on tape in the computer center
+but, for some data, it will be in one of the offline databases.
+Some data may also reside transiently in disk files in the computer center so that
+it is readily available for the follow-on data processing steps.
+
+The full list of computing functions provided by the RDM is:
+\begin{enumerate}
+\item Move data from the online disk buffer to long term storage.
+\item Update the file catalog to include meta-data and file location(s).
+\item Manage the free space in the online disk buffer.
+\item Manage the free space in the parts of dCache that are critical to data taking.
+\item Copy/mirror subsets of the online databases to the offline databases.
+\item Copy miscellaneous other files, such as the output of the online Data Quality Monitoring (DQM) system, to long term storage.
+\item Provide tools to manage and monitor the RDM system.
+\item Any splitting/joining or other reshaping of files that is needed to match the needs of downstream data processing.
+\item If needed, inform the follow-on workflows when work is ready for them to do.
+\end{enumerate}
+
+
+%The operation and maintenance of the Mu2e building router and the network between the Mu2e Hall and the computer center
+%is the responsibility of the Fermilab Core Computing Division (CCD).
+%The DPC has the responsibility to be the interface between Mu2e and CCD regarding this network.
+%Details of this responsbility are in Section~\fixme{reference the appropriate section}.
+
+The remainder of Chapter~\ref{ch:intro} will identify the stakeholders in this work,
+describe some conventions used in this document and
+state some prerequisites that will be needed to understand it.
+Chapter~\ref{ch:SelectedDetails}  of will describe a view of the
+Mu2e Trigger and Data Acquisition system (TDAQ) as seen from the RDM perspective;
+it will also describe some elements of the downstream data processing as seen
+from the RDM perspective.
+Chapter~\ref{ch:DataStreamsAndFileStreams} will define the ideas of data streams and file streams.
+Chapter~\ref{ch:data_streams} will give a strawman list of data streams.
+Chapter~\ref{ch:file_streams} will give a strawman list of file streams.
+Chapter~\ref{ch:questions} lists some questions that will need to answered when designing the system.
+Chapter~\ref{ch:requirements} states the requirements for the RDM system.
+Chapter~\ref{ch:RiskRegistry} describes risks that are known at this time.
+The document includes several appendices that provide additional details.
+
+%The cartoon picture is that TDAQ writes files to a disk buffer and RDM drains the disk buffer.
+%However, there are about 30 data streams, some tightly coupled to each
+%other, some loosely coupled to the others and others independent of the others.
+%The data streams will be grouped into a smaller number of files.
+
+
+The RDM owns no hardware.  It uses hardware that is owned and maintained
+by the Mu2e TDAQ group,
+by the Fermilab Scientific Computing Division (SCD)
+and by the Fermilab Core Computing Division (CCD).
+The only M\&S items within RDM are to pay CCD for maintenance on the Mu2e building router,
+and for end-of-service-life replacement of that router;
+see Appendix~\ref{app:RouterAndNetwork} for details.
+
+In early planning for the Mu2e DPC, what is now called the RDM was called the Data Logging System.
+However that name is too close to two related concepts in the online world:
+the {\code artdaq::DataLogger} processes that run on the Data Logger nodes.
+To avoid confusion with these other uses of ``Data Logger'',
+the name of this task was changed to RDM.
+
+\section{Milestones}
+\label{sec:Milestones}
+
+For reference, the milestones related to the Mu2e Construction Project and Mu2e Operations will
+be discussed in Section~\ref{ssec:ExternalMilestones}.
+The only hard milestone for RDM that is set by these milestones is at the start of
+Commissioning with Beam in early 2025.
+DPC is developing internal milestones to ensure that all DPC deliverables are
+complete and well tested prior to that deadline.
+Section~\ref{ssec:ExternalMilestones} presents the internal milestones.
+
+\subsection{External Milestones}
+\label{ssec:ExternalMilestones}
+
+Mu2e Project is being rebaselined, which means that the external milestones tied to the Mu2e
+Project and Operations schedules are not well known.
+Estimates for the most important dates are given in Table~\ref{tab:externalmilestones};
+these dates have been extracted from
+page 18 of the Ron Ray's presentation at the June 2021 Mu2e Collaboration Meeting~\cite{ProjectUpdate202106}
+and page 35 of Greg Rakness's presentation at the IPR held in February 2021~\cite{OperationsIPR}.
+
+\begin{table}
+\begin{center}
+\caption[Estimates for External Milestones]{Estimates for External Milestones}
+\label{tab:externalmilestones}
+\begin{tabular}{ll}\hline
+  Jan 1, 2023 & Calorimeter fully assembled in Mu2e Hall; begin cosmic ray system test. \\
+  Jul 1, 2023 & Tracker fully assembled in hall; continue cosmic ray system test. \\
+  Oct 1, 2023 & Detector KPP; cosmic ray system test complete. \\
+  Jan 1, 2025 & Begin commissioning with beam. \\
+  Apr 1, 2026 & Begin physics operations. \\
+   \hline
+  \end{tabular}
+\end{center}
+\end{table}
+
+
+\fixme{Do we expect the CRV to be part of the calorimeter only portion of the cosmic ray system test?}
+
+The cosmic ray system test will take place with the detector in the extracted position;
+it will include the tracker, the calorimeter and several modules of the CRV system
+arranged above the other two detectors to form a cosmic ray trigger.
+All will be read out using the TDAQ system.
+
+The detector Key Performance Parameters (KPP)~\cite{Mu2eKPPs},
+both the threshold and the objective versions,
+can be satisfied without the RDM.
+It is sufficient for the data to reach the disk buffer in the online system
+and to be reconstructed by code running on the online system.
+
+The 15 month period between the Detector KPP and the start of commissioning with beam will be used
+to complete the solenoid installation,
+map the magnetic field,
+insert the detector train into the Detector Solenoid (DS),
+install shielding
+and install the CRV system.
+During this period the detector will take cosmic rays whenever possible.
+These will fall into two categories:
+brief runs to test if any functionality has been impaired by recent actvities;
+long runs while other activities are taking place in the Mu2e Hall.
+
+In summary, the one external hard deadline is to have a fully functional RDM system before the start of
+Commisioning with Beam.
+The next section will discuss the internal milestones set to ensure that this external milestone is met.
+
+\subsection{Internal Milestones}
+\label{ssec:InternalMilestones}
+
+Table~\ref{tab:internalmilestones} presents a strawman for internal milestones.
+The pattern is to plan an Operational Readiness Review 3 months prior to each external
+milestone and to set an internal milestone 3 months before that.
+Part of job that is being defined by this document is to define the content of each phase.
+
+\fixme{These are still strawman milestones.  We need to discuss them and define them more clearly.
+  These are aggresive deadlines.  I am still anxious that we won't have the staff to meet aggressive deadlines; so why set them?}
+
+\begin{table}
+\begin{center}
+\caption[Strawman Interal Milestones]{Strawman Internal Milestones}
+\label{tab:internalmilestones}
+\begin{tabular}{ll}\hline
+  Jul 1, 2022 & Phase 1 system; ready for Calorimeter only portion of the cosmic ray system test. \\
+  Oct 1, 2023 & ORR for Phase 1 system. \\
+  Jan 1, 2023 & Phase 2 system; ready for for the full cosmic ray system test. \\
+  Apr 1, 2023 & ORR for Phase 2 system. \\
+  Jul 1, 2024 & Phase 3 system; ready for commissioning with beam. \\
+  Sep 1, 2024 & ORR for Phase 3; \\
+   \hline
+  \end{tabular}
+\end{center}
+\end{table}
+
+
+Notes to add:
+\begin{itemize}
+  \item What about Tracker VST and other VSTs?
+  \item Use VSTs to test prototypes for phase 1
+  \item Use Phase N-1 to test Phase N.
+  \item While running with cosmic rays, expect low data volume but frequent changes to details.
+    Can use this to demonstrate agility.
+\end{itemize}
+
+
+\section{Stakeholders}
+\label{sec:stakeholders}
+
+The stakeholders are:
+\begin{enumerate}
+  \item The Mu2e Operations organization.  The head is Greg Rakness.
+  \item The DPC organization within Mu2e Ops.  The head is Rob Kutschke.
+  \item The RDM team within DPC; not yet formed.  The role is being filled for now by Rob Kutschke and Ray Culbertson.
+  \item The Pass1 team within DPC; not yet formed. The role is being filled for now by Rob Kutschke and Ray Culbertson.
+  \item The TDAQ L2 within the Mu2e Construction Project.  The L2 manager is Ryan Rivera.  Eric Flumerfelt is also a critical member \fixme{Is Eric an L3?}.
+  \item The TDAQ organization within Mu2e Ops. The head is Bertrand Echenard.
+  \item The Mu2e Trigger group within the Mu2e Collaboration.  The co-conveners are Bertrand Echenard and Giani Pezzullo.
+  \item The Mu2e Computing and Software group.  The co-conveners are Dave Brown (LBL) and Rob Kutschke.
+  \item The Mu2e sub detector groups.  Are we correctly describing their raw data and what they want us to do with it?  \fixme{Ask leads to name delegates}
+    \begin{enumerate}
+      \item Tracker: Bob Tschirhart or delegate
+      \item Calorimeter: Stefano Misceti or delegate
+      \item CRV:  Craig Dukes or delegate
+      \item ExtMon: Matthew Jones or delegate
+      \item MSTM: Jim Miller or delegate
+      \item PTSM: Kevin Lynch or delegate
+    \end{enumerate}
+  \item Representatives from ongoing DAQ work, such as the Tracker VST; the contact is Richie Bonventre.
+  \item The Mu2e collaboration. The collaboration will be part of deciding the big picture needs for downstream data processing.
+    Co-spokespersons Jim Miller and Bob Bernstein.
+\end{enumerate}
+
+\section{Conventions Used in this Document}
+\label{sec:conventions}
+
+In this document the word ``computer center'' is used as a collective noun for the
+Feynman Computing Center (FCC) and the Grid Computing Center (GCC).
+When it is important to distinguish the two, one of the two will be named explicitly.
+This language also allows for changes to the computing center infrastructure over the
+lifetime of Mu2e.
+
+The DPC is not part of the Mu2e Construction Project but it is part of Mu2e Operations
+and Pre-Operations organizations.
+In various places, this document refers to ``Mu2e groups'', such as the TDAQ group.
+Sometimes this will mean an L2 group within the Mu2e Construction Project and at other
+times it will mean a group within the Mu2e Operations or Pre-Operations organizations;
+and at other times it will mean a group within the collaboration organization.
+Most of the time it will not be important to distinguish between these different meanings
+of group; when it is important, it will be stated explicitly.
+
+The phrase ``detector readout electronics'' is intended as collective noun for all elements
+up to and including the Read Out Controller (ROC) chips; it does not include
+the Data Transfer Controllers (DTC).
+
+This document uses the terminology ``primary triggers'' and ``support triggers'';
+these ideas are defined in reference~\cite{TriggerSU2020}.
+
+
+
+\section{Prerequisites}
+\label{sec:prerequisites}
+
+This document assumes that the reader has basic familiarity with the \art event processing framework~\cite{ARTWORDPRESS}, including:
+
+\begin{enumerate}
+\item The ideas of events, subruns and runs.
+\item {\code art::EventID}
+\item Event, run and subrun  data products.
+\item Run and subrun data product fragments; aggregation of run and subrun fragments.
+\item The notion of an atomic subrun: see appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a definition and additional discussion.
+\item Modules
+\item Filter modules and paths
+\end{enumerate}
+
+It is a assumed that the reader has basic familiarity with SAM, dCache, ENSTORE and submitting grid jobs.
+This includes understanding the ideas of File Families and Small File Aggregation (SFA).
+Some details about tapes are given in Appendix~\ref{app:AboutTapes}.
+
+It is assumed that the reader knows the Mu2e standards and practices regarding SAM file names\cite{Mu2eSAM}
+location of files in tape backed dCache\cite{FileNames}, and file families.

@@ -1,0 +1,52 @@
+\chapter{Strawman for the File Streams}
+\label{ch:file_streams}
+
+This chapter gives a strawman list of the files that will be written for one subrun.
+Some of the files contain multiple data streams and could be split into two or more files;
+for example one could imagine splitting the on-Spill Trk+Cal and CRV files by trigger line.
+Some of the files could be combined into a single file; for example the 4 ExtMon files could
+be reduced to 1, 2 or 3 files.
+
+\fixme{Update this with estimates of data volumes. What units should we use?  Maybe GB per subrun of 43 or
+  86 MI cycles (approximately 1 minute or 2 minutes )?
+  }
+
+\begin{enumerate}
+\item On-Spill
+  \begin{enumerate}
+    \item Trk+Cal stream
+    \item CRV stream
+    \item Intensity stream
+    \item Trigger Error/Debug stream
+    \item ExtMon pixel telescope summary data stream
+    \item ExtMon pixel telescope prescaled raw and intermediate data stream
+    \item ExtMon AFF  summary data stream
+    \item ExtMon AFF prescaled raw and intermediate data stream
+    \item MSTM summary data stream
+    \item MSTM prescaled raw and intermediate data stream
+  \end{enumerate}
+%
+\item Off-Spill
+  \begin{enumerate}
+    \item Trk+Cal triggered data stream
+    \item CRV events matched to triggered data stream
+    \item Trk+Cal events triggered for SiPM pedestal data
+    \item CRV events with SiPM pedestal data
+    \item Calorimeter pulser events
+    \item MSTM summary data stream
+    \item MSTM prescaled raw and intermediate data stream
+  \end{enumerate}
+\end{enumerate}
+
+
+As the stakeholders discuss the strawman, some of the things to think about are:
+
+\begin{enumerate}
+  \item Who are the stakeholders; are they all represented.
+  \item Match to downstream needs while staying within technical limitations
+  \item Put the complexity in a small number of places that can be managed by experts
+  \item If we split the data into more files rather than fewer files, there are per file
+    overheads within the {\code art::DataLogger} processes and the DLLS.  The overheads
+    may be worse for a hybrid RAID array than they are for an all SSD array.
+    We may need to test at scale before we can be sure what will work.
+\end{enumerate}

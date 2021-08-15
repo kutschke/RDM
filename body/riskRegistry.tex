@@ -1,0 +1,26 @@
+\chapter{Risk Registry}
+\label{ch:RiskRegistry}
+
+\section{Non-atomic Subruns from TDAQ}
+\label{sec:Risk:NonAtomicSubruns}
+
+The TDAQ group plans that each file stream created by TDAQ will have atomic subruns;
+see Appendix~\ref{ch:AtomicSubrunsExtendedDefinition} for a definition of atomic subruns.
+There is a risk that resource limitations will not allow this and, within some file streams,
+events from one subrun will be spread over 2 or more files.  It will not be possible
+to test the TDAQ design at scale until all equipment has been purchased and deployed.
+At that time it will be possible to do at-scale tests of much of the system using simulated events
+but there will remain a risk that the simulated events are not a good enough representation of data.
+Taking taking cosmic ray data will not stress the system enough to discover unforeseen resource limitations,
+This risk cannot be retired until we are taking beam data at design intensity.
+
+Should this risk materialize Mu2e DPC will need to modify the bookkeeping
+system to allow non-atomic subruns early in the workflow and modify the workflow
+to restore atomic subruns as soon as practical.
+There are no resources in the online system to merge files to restore atomic subruns
+so that work will need to be done after the data is in the computer center.
+The merging could be done either as part of RDM or as part of Pass1.
+
+An alternative is to tighten the trigger algorithms to accept fewer events;
+this risks loosing events that we really do want to keep and is the last alternative.
+It might be an expedient temporary measure during commissioning.

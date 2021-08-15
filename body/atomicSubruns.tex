@@ -1,0 +1,57 @@
+\chapter{Atomic Subruns}
+\label{ch:AtomicSubrunsExtendedDefinition}
+
+For a given dataset, if all events from each subrun are contained within a single \art file
+then that subrun is said to be ``atomic''.
+The caveat of ``for a given dataset'' means the following:
+suppose that dataset A contains all triggered events
+and we make dataset B that selects some events from dataset A.
+When we talk about the subruns of dataset B being atomic, we only care about events
+that passed the filter, not about events that failed the filter.
+
+The idea of atomic subruns does not require that each file contain events
+from only one subrun;
+it only requires that all events from one subrun be in one file.
+There may be many subruns in each file.
+
+Consider the case that Mu2e writes the following 3 data files for each subrun:
+\begin{enumerate}
+\item On-spill events.
+\item Off-spill events.
+\item Intensity stream events.
+\end{enumerate}
+Each of these files belongs to a distinct dataset; so this split of events does not break the notion
+of atomic subruns.
+
+Suppose that someone decides to create a new file that contains selected events from both on-spill
+and off-spill.  Conceptually that file is part of a distinct dataset and, if all selected events from
+each selected subrun are in a single file, then those subruns are atomic.
+
+Mu2e offline data processing requires that subruns be atomic.  The reasons include:
+\begin{enumerate}
+\item The bookkeeping system for recording which events are in which file requires atomic subruns.
+\item Having atomic subruns helps reduce thrashing of conditions data during data processing.
+\item A consumer of a subrun data product knows that the information is complete, and does not need
+  to develop and maintain code to manage the possibility of several subrun product fragments.
+\item Within one art job, if subruns are not atomic,
+  then is it is necessary to accumulate all subrun data products in memory.
+  If subruns are atomic, then \art may safely delete subrun data products when the subrun ends.
+  In sparse skims this leads to memory use that grows monotonically with subrun count,
+  which can dominate the memory used by the job.
+\end{enumerate}
+
+The Risk Registry~\ref{sec:Risk:NonAtomicSubruns} discusses responses to the possibility
+that a resource limitation may stop the TDAQ from producing atomic subruns.
+
+The last two concerns also apply to run data products.
+However runs will be far too large to ever have atomic runs except in the most heavily skimmed data sets.
+The designers of the follow-on workflows will need to keep this in mind.
+In particular, if information is stored in run data product fragments, it will be important for users
+to understand when information is a fragment and when it has been aggregated over the full run.
+For this reason we prefer that run scope information used in analysis live in databases, not in run data products.
+
+By default \art assumes that subruns are not atomic and it accumulates subrun data products throughout the job.
+You can tell \art that subruns are atomic by adding the following parameter to the configuration of
+RootInput: \cmd{ compactEventRanges : true}.
+
+\fixme{Check that last para with Kyle.}

@@ -1,0 +1,103 @@
+\chapter{Questions}
+\label{ch:questions}
+
+Below is a list of questions that must be addressed during the design of the RDM:
+
+\fixme{These are not ordered in any way.  How should we order them?}
+
+\begin{enumerate}
+  \item Be sure that all stakeholders are represented when making decisions.
+  \item Eric Flumerfelt says that he envisages the gateway machine as a minimal machine.  Will this meet our needs?
+    If not then we need spec an appropriate machine and work with the TDAQ L2 and the TDAQ (pre)Ops to ensure an appropriate
+    machine. It's very likely that we can live with a minimal machine until the start of commissioning with beam.
+  \item Is there plan for a hot spare for the gateway machine? If not, what about a cold spare?
+    This will be the responsibility of TDAQ (pre) Ops.  We need an understanding with them.
+  \item I understand that the machines in the TDAQ farm, including the gateway machine, will be admin by SCD personnel.  Make sure that
+    RDM interests are presented in agreements with SCD.
+  \item Do we need dedicated computing resources in the computer center? Is it good enough to request additional VMs configured similar to
+    the mu2egpvm machines?  If not, what are our options?  In all cases understand who admins the machines, hot spares or cold spares.
+    Remember that the reason that SCD likes to support VMs is that it's very easy to stand up a replacement if a host dies.
+  \item Be sure to plan one or more design reviews and one or more Operational Readiness reviews.
+  \item The TDAQ team plans that each of the trigger filter processes will have a unique process name.
+    Also each of the {\code artdaq::DataLogger} processes will have a unique name.
+    This may break the current \art implementation of secondary input files; see Section~\ref{appsec:SecondaryInputs}.
+    We should develop a proof of principle demonstration as soon as the TDAQ team can provide examples of files written by
+    the  {\code artdaq::DataLogger}.
+  \item The ExtMon summary data will be small, on the scale of 200~KiB per MI cycle.  How will this be aggregated for storage on tape?
+    The answer may depend on how it is used in downstream processing.  Is SFA good enough?
+  \item Decide on a split level for data products in \art root files.  We now use 99999; CMS uses 0 (or 1, whichever is the smallest allowed).
+  \item Do we need to extend our file families.  For example does it make sense to store on-spill triggered events on the same tapes as SiPM pedestal data?
+  \item Work with the collaboration to understand the downstream processing plans for all data streams.  Use this to inform what we do with
+    files once they are in dCache,
+
+  \item How will Pass1 and other follow-on workflows know that new data has arrived?
+    Will it be driven entirely by updates to the file catalog or do we need other
+    hooks to those workflows?
+  \item Does it make sense to consider POMS to drive the workflow of RDM?
+  \item Does RDM have any responsibilities to move information from EPICS to offline?
+  \item Mu2e needs to manage the free space in /pnfs/mu2e/persistent. Many parts of DPC will touch this space.
+    Whose job is it to ensure what there is adequate free space? Maybe RDM should have a separate dCache
+    partition to isolate it from issues caused by other users?
+  \item What does it mean for a file to be ``on tape'' and therefore deletable?
+    For example, if it's in both persistent and tape backed dCache, but not yet on tape, is that good enough?
+  \item Work with TDAQ to define a policy for locating files within the DLLS.
+  \item Revisit the question of keeping N hours of free space in the DLLS vs aggressively deleting files to keep
+    maximum free space.  If we decide to change then we need to update the requirements.
+  \item Update data size estimates; using the design DLLS size, how many hours of buffer do we have?  Is it good enough?
+    If not, do we ask TDAQ to buy more space or do we live with a shorter maximum buffering time?
+    The size of the buffer will not be an issue until we are commissioning with beam so this does not need to
+    be addressed soon and it need not be on-project.
+  \item Work with the TDAQ team to define a protocol for TDAQ to inform us when new files are available.
+    My instinct is that we don't to walk the file system discover files that need to be moved to tape.
+    I prefer that we receive a message and manage a queue; this implies persistency for the queue state
+    and error recovery tools.
+    Should this be raised to a requirement?
+  \item Think about recovering from from a long network or dCache downtime:
+    we will want to identify pairs of a Trk+Cal file and its matching CRV file and move these pairs as a unit;
+    we do not want catch up processing delayed while one file is on dCache but it's partner is not.
+    Do have a operations based preference for LIFO vs FIFO? What about all on-spill before any off-spill?
+  \item Corner cases to manage:
+    \begin{enumerate}
+      \item Files or subruns that contain zero events.
+      \item If data taking is paused, does RMD need to know that?  If so, how will it be notified?
+      \item When data taking has stopped for more than a few minutes (say a 15 minute maintenance access ),
+        we probably want to flush the system to make sure that all data is processed to the end of Pass1
+        in a timely fashion.
+        This is only relevant if there are synchronization points in the workflows in which processing
+        subrun N waits subrun N+1 before it takes the next step.
+      \item A variant on the previous item.  Suppose we are making tar files to archive read-rarely small
+        files, such as the ExtMon summary data.
+        If there is a pause in data taking, when do we decide to make a small tarball and when
+        do we wait for more files?  And the same question if we choose an aggregation method that is not
+        tar files.
+      \item If a shifter marks a run as bad, do we still want to run Pass1?
+    \end{enumerate}
+  \item   When do we move SAM to RUCIO? As soon as we can? During the long shutdown or later?  Never?
+    How will an early-ish transition interact with requirements for ongoing simulation, VST and test stand work?
+    Can both SAM and RUCIO coexist?
+  \item Work with TDAQ to understand the constraints that drive the choices of how to
+    map data streams to file streams.
+    \begin{enumerate}
+      \item A separate file stream for the intensity stream.
+      \item split on-spill and off-spill to separate file streams
+      \item split off-spill into triggered and pedestal.
+    \end{enumerate}
+  \item Where in the workflow will we merge each Trk+Cal file with it's matching CRV file?
+    It could be in either RDM or Pass1; so we will need to discuss with the Pass1 team.
+  \item Check with TDAQ: will you close an output file every subrun and open a new one? Will it be the same
+    on all file streams or can it differ?  What's the plan to deal with a subrun transition when one
+    event is very late arriving?  How does that last case affect RDM?
+  \item At one time it looked like the raw data format for the CRV might be very inefficient
+    because every header had to be present even if there was no associated data.
+    One mitigation that was discussed was to reformat the raw data after it was in dCache and before it was written to tape.
+    The other mitigation was to change the off-spill event duration to 100~$\mu$s; did that provide enough mitigation for off-spill events?
+    For on-spill events the CRV data is small part of the whole; is it worthwhile to improve efficiency on a small part of the whole?
+    What do we need to do here?  Does this belong in the risk registry?
+  \item This document has some implicit assumptions.  Are they still correct?  Where should we write them down to make them explicit:
+    \begin{enumerate}
+      \item The unit of data processing will be an integer number of files; because of atomic subruns, this implies an integer number
+        of complete subruns.
+      \item Files must be small enough to be processed in under a few hours.
+      \item The unit of checkpointing will be one grid job.
+    \end{enumerate}
+\end{enumerate}
