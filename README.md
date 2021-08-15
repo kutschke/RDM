@@ -1,4 +1,4 @@
-# DataLoggingBackground
+# Raw Data Movement (RDM)
 LaTeX source and makefile for a document describing background information needed by those who will design the Mu2e Raw Data Movement System.
 It is based on a LaTeX documentclass file created for the art workbook.
 
@@ -7,6 +7,7 @@ It is based on a LaTeX documentclass file created for the art workbook.
 | README.md        | This file |
 | art-workbook.cls | LaTeX class file copied from the art-workbook-doc project |
 | body/            | Source files that form the body of the document |
+| body/body.tex    | Master file that \input's all of the others |
 | config/          | Files the configure the document  |
 | draft.tex        | Top level LaTeX file with all draft annotations enabled  |
 | figures/         | Where to find figures  |
@@ -15,6 +16,7 @@ It is based on a LaTeX documentclass file created for the art workbook.
 | references.bib   | bibtex source for references |
 | styles/          | Style files that are not in the TexLive distirbution on my Mac.  |
 | titlepage.tex    | Source for the title page
+
 
 To build the draft or print versions:
 <pre>
