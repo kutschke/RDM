@@ -1,5 +1,6 @@
 # DataLoggingBackground
 LaTeX source and makefile for a document describing background information needed by those who will design the Mu2e Raw Data Movement System.
+It is based on a LaTeX documentclass file created for the art workbook.
 
 | File             | Content |
 | --- | --- |
