@@ -1,0 +1,20 @@
+% Include this to produce a draft version on the document.
+\usepackage[pagewise]{lineno}
+\linenumbers
+\renewcommand{\fixme}[1]{{\color{red}{\textbf{FIXME:} \textit{#1}}}}
+\renewcommand{\lbnepagestyle}{glossy}
+
+\renewcommand{\ifixme}[1]{{\slshape\color{cyan}\textbf{FIXME: } #1}}
+\newenvironment{efixme}%  format notes during document preparation
+  {\par\slshape\color{cyan}\textbf{FIXME}}%
+  {} % \rmfamily\upshape\normalcolor
+
+
+% show \label and other keys in the margin to make it easier for
+% editors to add \ref and other references.
+\usepackage[color]{showkeys}
+% Add a DRAFT watermark
+\usepackage{draftwatermark}
+\SetWatermarkText{DRAFT}
+\SetWatermarkScale{1}
+\SetWatermarkLightness{0.95}
