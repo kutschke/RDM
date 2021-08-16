@@ -13,6 +13,20 @@ print:
 
 spell:
 	aspell -t -c body/body.tex
+	aspell -t -c body/intro.tex
+	aspell -t -c body/interfaces.tex
+	aspell -t -c body/dataAndFileStreams.tex
+	aspell -t -c body/dataStreams.tex
+	aspell -t -c body/fileStreams.tex
+	aspell -t -c body/questions.tex
+	aspell -t -c body/requirements.tex
+	aspell -t -c body/riskRegistry.tex
+	aspell -t -c body/atomicSubruns.tex
+	aspell -t -c body/router.tex
+	aspell -t -c body/dlls.tex
+	aspell -t -c body/tapes.tex
+	aspell -t -c body/art.tex
+	aspell -t -c body/miscellaneous.tex
 
 # Clean up all generated files including .pdf
 clean:
