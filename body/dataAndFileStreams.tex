@@ -17,8 +17,8 @@ For example the on-spill and off-spill events are distinct data streams.
 The on-spill events will have many trigger lines; one might consider each trigger
 line it's own data stream or one might define groups of trigger lines as a data stream.
 Another example: the off-spill events will include some events that triggered based on
-the tracker or calorimeter and they will also include SiPM noise events.
-The triggered events and the SiPM noise events are distinct data streams.
+the tracker or calorimeter and they will also include SiPM pedestal events.
+The triggered events and the SiPM pedestal events are distinct data streams.
 
 A ``file stream'' is a series of files that contain events from one or more data streams.
 For example we might decide to bundle all of the on-spill data streams into a single
