@@ -1,4 +1,4 @@
-\chapter{Things to Know About Tapes}
+\chapter{About Tapes}
 \label{app:AboutTapes}
 
 Some of the following information comes from email conversations with
@@ -7,47 +7,54 @@ Rafael Rocha (CCD) in late 2019 and early 2020.
 As of summer 2021 Mu2e data is written to LTO8 tape cartridges,
 Linear Tape Open (LTO) 8th generation~\cite{LTO}.
 Each LTO8 cartridges holds 12~TB and as of fall 2019 cost \$140. per cartridge.
-Historically a generation N LTO drive can write media from generations N and N-1
+Historically a generation N LTO drive can read/write media from generations N and N-1
 and can read data from generation N-2.
 Historically CCD has skipped media generations so the next
 media generation likely to be used at Fermilab will be LTO10,
 which has a planned capacity of up to 36~TB per cartridge~\cite{LTORoadmap};
-as of summer 2021 there is no timetable for the roll out of LTO10.
+as of summer 2021 there is no timetable for the transition to LTO10.
 
 Until guidance from CCD changes, Mu2e will plan that we will start
 data taking using LTO8 media and switch to LTO10 during the run.
 
 The guidance from CCD is that the sweet spot for efficient use of LTO media
 is around 1000 files per cartridge.  For LTO8 media this is about 1.2~GB per file.
-If file sizes are significantly smaller, then a larger fraction of the
-tape is taken up by inter-file gaps.
+If file sizes are significantly smaller,
+then a larger fraction of the tape is taken up by inter-file gaps
+and the capacity of one cartridge decreases.
 
-It may happen that the sweet spot for data processing is to have files that
-are smaller than 1.2~GB per file.  To improve tape use efficiency CCD
-provides a system called Small File Aggregation (SFA).
+It may happen that the sweet spot for downstream data processing is to
+write files that are smaller than 1.2~GB per file.
+To improve tape use efficiency CCD the recommended procedure is to use Small File Aggregation (SFA).
+
+Experience from the past has shown that it's not wise to use SFA to manage
+very large numbers of very small files.  Examples from past simulation campaigns
+include the individual fcl files for each job, the job log files
+and the small root TFileService files that were created by many jobs.
+For every operation, there are per file overheads in addition to overheads
+that scale with data volume.  Operations include: uploading the file
+to tape backed dCache from it's previous location, registering the file
+with SAM, updating SAM with tape locations.  While these overheads
+are not part of SFA proper, they are needed to use SFA.
+In addition SFA has a timeout after which it will write the current set of files to
+tape, even if the size of the resulting tar file would still small.
+Typically that timeout is 1 day.
+This defeats the purpose of SFA since we are still writing small files to tape.
+
+The preferred solution is to keep these files on disk until the end of the campaign,
+make tar files ourselves
+and upload those tar files to tape under the etc data tier.
+This scheme only works for archival files, that is, for files that we expect to
+read rarely, if at all.
+If we want to keep redundant copies of these files until they are on tape,
+we should do so by putting a second copy on dCache or perhaps on our NAS disks.
 
 \fixme{Reference for SFA}.
 
-A cartoon picture of SFA is the following.  Consider, for example,
-that Mu2e needs to write files that are 300~MB in order to match
-downstream processing needs.  In that case the SFA system will collect
-4 files into a tar file and write that tar file to tape.  The SFA
-system does the bookkeeping to know which file is in which tar file.
-When we ask for a file to be restored from tape, the system will
-identify which tar file needs to be restored from tape and restore that
-tar file to temporary disk space.  It will then unpack that tar file
-and restore the requested file to its dCache disk location.
-
-All of the gymnastics with tar files is hidden from end users, who
-only see that the files are stored on tape and are restored on demand.
-
-Experience has shown that SFA works well with up to 10's of files
-per tar file.  It works poorly with thousands of files per tar file.
-
 \fixme{To add:}
 \begin{enumerate}
+  \item What are our current SFA settings.  How do you look them up.
   \item speed specs for seek/rewind, read.
   \item Mount time spec including robot motion
-  \item What are our current SFA settings.  How do you look them up.
   \item Prestaging does not update the LRU date.  Nor does touching.  You must read at least one byte.
 \end{enumerate}

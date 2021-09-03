@@ -1,18 +1,22 @@
 \chapter{Strawmen for Model Building}
 \label{ch:strawmen}
 
-In order to develop model for data volume and data handling it is necessary
+In order to develop a model for data volume and data handling it is necessary
 to define the duration of one Subrun and the running schedule over the course
 of a year.  This chapter specifies strawman models for both.
 
 \section{Strawman Subrun}
 \label{sec:strawmanSubrun}
 
-For purposes of this document it is assumed that supercycle of the accelerator
-complex will be 40 MI cycles followed by 4 seconds of beam to MTEST.  This
-corresponds to 56~s of MI cycles plus 4 seconds of extended off-spill running,
-for a total duration of 1~minute.  The subrun transition will occur sometime
-near the end of the 4 seconds of off-spill running.
+For purposes of this document it is assumed that,
+when the accelerator is running,
+there will be continuous MI cycles of 1.4~ns for many hours at a time.
+Among other things, this means that we are ignoring the possibility of
+a few seconds of beam to MTEST approximately once per minute.
+
+A Subrun will be defined as 50 MI~cycles, which has a duration of 70~s.
+The transition to the next subrun will occur sometime during the
+last off-spill period.
 
 \section{Strawman Year}
 \label{sec:strawmanYear}
@@ -20,16 +24,17 @@ near the end of the 4 seconds of off-spill running.
 For purposes of this document it is assumed that the operational plan for
 the accelerator complex is:
 \begin{enumerate}
-  \item 42~weeks per year of accelerator operations; the remaining time will be the yearly accelerator shutdown.
-    \begin{enumerate}
-    \item During the shutdown Mu2e will take cosmic ray data half of the time and be off entirely half of the time.
-    \end{enumerate}
-  \item 20/21 shifts per week of accelerator operations; the other shift is for planned maintenance and for R\&D.
-  \item Mu2e willl collect beam data with an efficiency of 90\% during accelerator operations;
-    the other 10\% time will be spent resolving technical problems and in run transitions.
-  \item This gives an overall yearly data taking efficiency of 69\% plus an additional 10\% of the time taking
-    cosmic ray data during the shutdown.
+  \item 40~weeks per year of accelerator operations; the remaining time will be the yearly accelerator shutdown.
+  \item During the accelerator shutdown, Mu2e will take cosmic ray data half of the time
+    and will not take data the other half of the time; this time will be used for maintenance, upgrades etc.
+  \item When the accelerator is running there will be 20/21 8-hour shifts per week of accelerator operations;
+    the other shift is for maintenance and studies.
+  \item When the accelerator is delivering beam to the production target, Mu2e will collect data with an
+    efficiency of 90\%;
+    the other 10\% is an estimate of time lost during run transitions and of time spent resolving technical problems.
+    Experience with previous experiments is that 90\% is optimistic.
+  \item When Mu2e turns on after a shutdown, it will start taking data immediately at full intensity and full efficiency.
+  \item This gives an overall yearly of efficiency of about 66\% for beam data plus an additional 12\% of the year taking
+    cosmic ray data during the accelerator shutdown.
 \end{enumerate}
-
-\fixme{In item 3, 90\% seems high.}
 
