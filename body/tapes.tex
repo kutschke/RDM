@@ -49,11 +49,93 @@ read rarely, if at all.
 If we want to keep redundant copies of these files until they are on tape,
 we should do so by putting a second copy on dCache or perhaps on our NAS disks.
 
-\fixme{Reference for SFA}.
+\section{File Families}
+\label{sec:FileFamilies}
+
+\section{Small File Aggregation}
+\label{sec:sfa}
+
+Most of the information in this section comes from an email conversation with
+John Hendry (CCD) in September 2021.  See also the main SFA reference~\cite{SFA}.
+
+Information about the configuration of active SFA for Mu2e file families can
+be found at by searching for the string ``Mu2e'' on this page: \\
+\hphantom{mm}
+\href{https://www-stken.fnal.gov/cgi-bin/enstore\_sfa\_files\_in\_transition\_cgi.py}
+     {https://www-stken.fnal.gov/cgi-bin/enstore\_sfa\_files\_in\_transition\_cgi.py}\\
+You will need FNAL VPN access to access this page.
+It is also linked from Mu2e computing operations page: \\
+\hphantom{mm}
+\href{https://mu2ewiki.fnal.gov/wiki/OfflineOps}{https://mu2ewiki.fnal.gov/wiki/OfflineOps}
+at the link named ``Active SFA''.
+
+The first column is the name of the SFA configuration and it contains a string that describes
+the tape system on which the files will be written. We are currently writing to CD-LTO8G2.
+This web page also includes some configurations with the name CD-LTO8F1; these were current
+when we were writing to M8 media on LTO8 drives, at the time when LTO8 media was
+not available.  Ignore these lines.  There are also configurations with the string
+MIGRATION in their name; these are used by the jobs that are migrating files from older
+generation media to LTO8 media. Ignore these too.
+
+Each configuration contains 3 parameters that control the decision of when to make a tar file.
+As files are accumulated, the creation of the tar file will be triggered by the earliest of
+these events:
+\begin{itemize}
+  \item the number of waiting files reaches max\_files\_in\_pack
+  \item the sum of the (uncompressed) size on disk of the waiting files reaches minimal\_file\_size
+  \item the oldest of the waiting files is older than max\_waiting\_time seconds.
+\end{itemize}
+Once one of these limits is reached, the files will be queued for making a compressed tar
+file and writing it to tape.  Any new files written after this will be accumulated towards
+the next tar file.
+
+If a file has a size of more than max\_member\_size it will not be included in a tar file;
+instead it will be written to tape as an ordinary file.
+
+The column resulting\_library identifies the disk space to be used for
+the transient compressed tar file.
+The field name wrapper describes the format of the volume and file labels written to the tape.
+
+The web page is difficult to read.  For convenience, a snapshot of that information is given
+in Table~\ref{tab:SFA}.  Be aware that web page is authoritative and the table may be out of date.
+
+\begin{table}
+\begin{center}
+  \caption[SFA Parameters]{A Snaphot of the SFA Parameters on September 7, 2021.
+    Consult the web page listed in the text for authoritative values. }
+\label{tab:SFA}
+\begin{tabular}{lrrrr}\hline
+  \multicolumn{1}{c}{File Family} &
+  \multicolumn{1}{c}{minimal\_file\_size} &
+  \multicolumn{1}{c}{max\_files\_in\_pack} &
+  \multicolumn{1}{c}{max\_waiting\_time} &
+  \multicolumn{1}{c}{max\_member\_size}  \\
+  &
+    \multicolumn{1}{c}{(kB)} &
+  &
+    \multicolumn{1}{c}{(s)} &
+    \multicolumn{1}{c}{(MB)}  \\  \hline
+phy-etc & 4882812 & 3000 & 86400 & 300 \\
+phy-nts & 4882812 & 3000 & 86400 & 300 \\
+phy-sim & 7812500 & 3000 & 86400 & 300 \\
+usr-etc & 4882812 & 3000 & 86400 & 300 \\
+usr-nts & 9765625 & 2000 & 86400 & 400 \\
+usr-sim & 4882812 & 3000 & 86400 & 300 \\
+tst-cos & 4882812 & 3000 & 86400 & 300 \\
+phy-ntd & 7812500 & 2000 & 86400 & 300 \\
+phy-raw & 7812500 & 2000 & 86400 & 300 \\
+phy-rec & 7812500 & 2000 & 86400 & 300 \\
+usr-dat & 7812500 & 2000 & 86400 & 300 \\
+  \hline
+  \end{tabular}
+\end{center}
+\end{table}
+
+
+
 
 \fixme{To add:}
 \begin{enumerate}
-  \item What are our current SFA settings.  How do you look them up.
   \item speed specs for seek/rewind, read.
   \item Mount time spec including robot motion
   \item Prestaging does not update the LRU date.  Nor does touching.  You must read at least one byte.
