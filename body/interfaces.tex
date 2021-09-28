@@ -35,7 +35,8 @@ This section briefly describes the elements of the Mu2e Online system that the r
   and by other online software.
 \end{description}
 Both OTS DAQ and \artdaq are developed and supported by the Fermilab SCD;
-they are used by Mu2e and by other experiments.
+they are used by Mu2e and by other experiments. EPICS is widely use for slow
+control by other experiments at Fermilab.
 
 
 \section{Block Diagram}
@@ -57,7 +58,7 @@ that will read data from storage in the computer center, process it,
 and write data back to storage computer center.
 The first workflow in this chain is Pass1, which will run soon after new files
 are resident on storage in the computer center and are registered in the file catalog;
-for additional details of the offline data processing workflows see~\ref{sec:downstreamProcessing}.
+for additional details of the offline data processing workflows see Section~\ref{sec:downstreamProcessing}.
 
 \begin{figure}[tbp]
 \centering
@@ -68,7 +69,8 @@ for additional details of the offline data processing workflows see~\ref{sec:dow
 \label{fig:blockdiagram}
 \end{figure}
 
-Data flows from the detectors, through the DAQ system into the TDAQ computer farm.
+Data flows from the detectors, through the readout electronics,
+through the DAQ system and into the TDAQ computer farm.
 The five approved detectors are the Tracker (Trk), Calorimeter (Cal), the Cosmic Ray Veto system (CRV),
 the Muon Stopping Target Monitor (MSTM) and the downstream Extinction Monitor (ExtMon).
 A sixth detector has been proposed, the Production Target Scanning Monitor (PTSM),
@@ -76,11 +78,11 @@ which is drawn with a dotted box;
 it's primary use is to send rapid feedback to the accelerator control room
 and it's not clear what, if any, data it will send through the TDAQ system.
 It is only mentioned here for completeness;
-the data volume from the PTSM will be small enough that it will not be
+the data volume, if any, from the PTSM will be small enough that it will not be
 a driver for the RDM.
 
 A cartoon picture of the TDAQ computer farm is that it has 40 DAQ Server nodes
-that talk to the detectors, build events and run trigger algorithms on those events.
+that talk to the detector electronics, build events and run trigger algorithms on those events.
 The design is a dead-timeless streaming DAQ system that has no hardware trigger;
 it reads every event from the detector hardware and sends all events to software filters
 that run on the DAQ server nodes;
@@ -90,8 +92,9 @@ Events that pass the trigger are forwarded to Data Logger nodes that will write 
 to files in the Data Logger Local Storage (DLLS), a RAID 0 hybrid SSD/HDD array on the bus of the Data Logger nodes.
 Appendix~\ref{app:DataLoggerLocalStorage} has the specs for and a discussion about the DLLS.
 In earlier DPC related talks and documents the DLLS  was referred to as the ``48 hour disk buffer''.
-In addition to the triggered events, a variety of prescaled, untriggered events will pass the
-trigger and be handled the same as events that passed the trigger.
+In addition to the events that trigger because they are interesting,
+a several prescaled samples of the remaining events will pass the
+trigger and will be handled the same as the interesting events.
 Finally, there will be special data streams for calibrations.
 
 The base design is to have a two data logger nodes that receive the data from all DAQ server nodes
@@ -133,7 +136,7 @@ At this writing Mu2e is using SAM as the file catalog system for files produced
 by simulations, tests stands and Vertical Slice Tests (VST).
 SCD plans to phase out SAM and replace it with a more modern system, RUCIO\cite{RUCIOHome};
 RUCIO is already in use by CMS and by DUNE for Proto-DUNE Single Phase data.
-It is likely that SAM will be phased out during the lifetime of Mu2e.
+It is almost certain that SAM will be phased out during the lifetime of Mu2e.
 One of the questions to ask in the design of the RDM is
 when to make the transition to RUCIO.
 
@@ -235,7 +238,7 @@ Table~\ref{tab:timescales} summarizes the time scales within one MI cycle.
 In the on-spill configuration, one event will have  a duration of 1695~ns
 and it records the information associated with one proton pulse.
 The trigger will be configured to select interesting events associated with the proton pulse
-and to prescale non-triggering events in order to study the performance of the trigger.
+and to prescale other events in order to study the performance of the trigger.
 In the off-spill configuration, one event will have a duration of 100~$\mu$s.
 During the off-spill period, Mu2e will trigger on cosmic rays that
 pass through the tracker and/or the calorimeter; it will also collect
@@ -246,7 +249,7 @@ Mu2e expects that the accelerator super-cycle will consist of a
 sequence of many of the above MI cycles,
 with an occasional other cycle mixed in.
 For example, when MTEST is active, there is usually beam delivered to MTEST about once per minute.
-When this occurs, Mu2e will have an extended period of off-spill running.
+When this occurs, Mu2e will have an additional few seconds off-spill running.
 
 There will also be periods in which the accelerator complex is not delivering
 beam to Mu2e for an extended time, minutes, hours, days or weeks.
@@ -262,11 +265,11 @@ At this time there are no definite plans to use this mode but it is available if
 
 The design of the Mu2e TDAQ system is that trigger processing lags the incoming events
 during the on-spill period and catches up during the off-spill period.  There is
-buffering at various places in the TDAQ system to support this.
+buffering distributed throughout the TDAQ system to support this.
 
 It's possible that the MI cycle might need to be increased to 22 Booster cycles to
 allow for hysteresis in the MI electromagnets;
-should that happen the additional time will be allocated to a longer off-spill period.
+should that happen, the additional time will be allocated to a longer off-spill period.
 This does not significantly change the requirements for the RDM.
 
 Mu2e plans to start operations with a slightly different configuration:
@@ -459,16 +462,14 @@ Within a each subrun, however, the events may not be in order.
 \fixme{If we end up with short subruns, say 10 MI cycles, 14 s, will we need to stripe
   this 3 or 4 wide to survive the longest processing latencies?}
 
-At the big picture level the above story is the same for both on-spill and off-spill running.
+At the big picture level, the above story is the same for both on-spill and off-spill running.
 There are two important differences in details.
 First, the trigger filter processes test the EventMode
 and run different algorithms for the two cases;
 second, the rate of triggered events
 and data volume per triggered event will be much smaller in off-spill events than in on-spill events.
 
-
-The behavior for other event modes will be discussed elsewhere.
-\fixme{Add references}
+The behavior for other event modes is not yet known.
 
 \subsection{Cosmic Ray Veto}
 \label{ssec:CRV}
@@ -507,10 +508,17 @@ and buffer it internally until the CRV information arrived.
 After the CRV information arrived,
 the {\code artdaq::DataLogger} process would write an event containing information from all 3 subsystems.
 As the TDAQ design matured, the TDAQ team became concerned that this scheme would not work because
-the tail to long processing times in the trigger filters would exceed the buffering capacity within
-the CRV readout electronics.
+of two factors could conspire to exceed the buffering capacity within the CRV readout electronics;
+the factors are the tail to long processing times in the trigger filters
+and the size of the CRV data.
 Therefore this plan was replaced with that described above.
 \end{sloppypar}
+
+It is the strong preference of the DPC team that the decision to split the data
+for one event into two files be revisited from time to time.
+If new information indicates that the TDAQ team can revert to the original, non-split
+configuration, we request that they do so.
+
 
 The light sensors for the CRV system are Silicon Photo multipliers (SiPM).
 The CRV team have requested that, during off-spill running,
@@ -521,13 +529,13 @@ or ``SiPM pedestal events''.
 
 Mu2e will automatically get a small sample of SiPM pedestal data from the off-spill events
 that trigger based on tracker and calorimeter data.
-However this trigger rate will be only a few Hz, which will not yield enough SiPM pedestal data.
+However this trigger rate will be only of O(20 Hz), which will not yield enough SiPM pedestal data.
 One option is for the trigger filters to prescale off-spill events that fail the trigger
 and to do so at a rate that will produce a large enough sample of SiPM pedestal data.
 In this case SiPM pedestal events will include information from the tracker and calorimeter as well,
 albeit in separate files.
 A second option is for an independent agent within the TDAQ system to trigger the SiPM pedestal events;
-in this case most SiPM pedestal events will usually not contain tracker and calorimeter information.
+in this case SiPM pedestal events will not contain tracker and calorimeter information.
 The TDAQ team has not yet decided between these options.
 
 \fixme{If the collaboration has a preference, they should make it known. Do we need a section with
@@ -556,9 +564,10 @@ If the second number is non-zero more than once every few hours it indicates a p
 
 The pixel telescope hardware will be read out by a computer that is located in the cavern.
 This computer will process the raw data and send summary data plus
-several types of prescaled raw and intermediate level data to a server in the DAQ Server farm.
-Due to bandwidth limitations in the pixel readout, the ExtMon summary data will only be available
-every N events, where N will be something like 10 or 20.
+several types of prescaled raw and intermediate level data to one server in the DAQ Server farm.
+The ExtMon Summary data will be available for the off-spill period for every event but,
+due to bandwidth limitations in the pixel readout,
+the on-spill summary data will only be available every N events, where N will be something like 10 or 20.
 The server in the DAQ Server farm will receive the data and write it to one or more files in
 the DLLS.
 

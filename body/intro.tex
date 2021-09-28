@@ -32,7 +32,8 @@ The full list of computing functions provided by the RDM is:
 %The DPC has the responsibility to be the interface between Mu2e and CCD regarding this network.
 %Details of this responsbility are in Section~\fixme{reference the appropriate section}.
 
-The remainder of Chapter~\ref{ch:intro} will identify the stakeholders in this work,
+The remainder of Chapter~\ref{ch:intro} will identify the relevant milestones,
+identify the stakeholders in this work,
 describe some conventions used in this document and
 state some prerequisites that will be needed to understand it.
 Chapter~\ref{ch:SelectedDetails}  of will describe a view of the
@@ -44,7 +45,7 @@ Chapter~\ref{ch:data_streams} will give a strawman list of data streams.
 Chapter~\ref{ch:file_streams} will give a strawman list of file streams.
 Chapter~\ref{ch:questions} lists some questions that will need to answered when designing the system.
 Chapter~\ref{ch:requirements} states the requirements for the RDM system.
-Chapter~\ref{ch:RiskRegistry} describes risks that are known at this time.
+Chapter~\ref{ch:RiskRegistry} describes risks that have been identified.
 The document includes several appendices that provide additional details.
 
 %The cartoon picture is that TDAQ writes files to a disk buffer and RDM drains the disk buffer.
@@ -71,12 +72,12 @@ the name of this task was changed to RDM.
 \label{sec:Milestones}
 
 For reference, the milestones related to the Mu2e Construction Project and Mu2e Operations will
-be discussed in Section~\ref{ssec:ExternalMilestones}.
+be presented in Section~\ref{ssec:ExternalMilestones}.
 The only hard milestone for RDM that is set by these milestones is at the start of
-Commissioning with Beam in early 2025.
+Commissioning with Beam in early 2025: the full system must be working by then.
 DPC is developing internal milestones to ensure that all DPC deliverables are
 complete and well tested prior to that deadline.
-Section~\ref{ssec:ExternalMilestones} presents the internal milestones.
+Section~\ref{ssec:InternalMilestones} presents the internal milestones.
 
 \subsection{External Milestones}
 \label{ssec:ExternalMilestones}
@@ -168,7 +169,8 @@ Part of job that is being defined by this document is to define the content of e
 \end{table}
 
 
-Notes to add:
+
+\fixme{Notes to add:
 \begin{itemize}
   \item What about Tracker VST and other VSTs?
   \item Use VSTs to test prototypes for phase 1
@@ -176,7 +178,7 @@ Notes to add:
   \item While running with cosmic rays, expect low data volume but frequent changes to details.
     Can use this to demonstrate agility.
 \end{itemize}
-
+}
 
 \section{Stakeholders}
 \label{sec:stakeholders}
@@ -191,7 +193,7 @@ The stakeholders are:
   \item The TDAQ organization within Mu2e Ops. The head is Bertrand Echenard.
   \item The Mu2e Trigger group within the Mu2e Collaboration.  The co-conveners are Bertrand Echenard and Giani Pezzullo.
   \item The Mu2e Computing and Software group.  The co-conveners are Dave Brown (LBL) and Rob Kutschke.
-  \item The Mu2e sub detector groups.  Are we correctly describing their raw data and what they want us to do with it?  \fixme{Ask leads to name delegates}
+  \item The Mu2e sub detector groups.  Their role is to make sure that we correctly understand their raw data and how they need us to process it?  \fixme{Ask leads to name delegates}
     \begin{enumerate}
       \item Tracker: Bob Tschirhart or delegate
       \item Calorimeter: Stefano Misceti or delegate
@@ -200,7 +202,8 @@ The stakeholders are:
       \item MSTM: Jim Miller or delegate
       \item PTSM: Kevin Lynch or delegate
     \end{enumerate}
-  \item Representatives from ongoing DAQ work, such as the Tracker VST; the contact is Richie Bonventre.
+  \item Representatives from ongoing tests, such as the various Vertical Slice Tests (VST); the contact for the Tracker VST is Richie Bonventre;
+    the contact for the CRV tests at Wideband lab is Yuri Oksuzian.
   \item The Mu2e collaboration. The collaboration will be part of deciding the big picture needs for downstream data processing.
     Co-spokespersons Jim Miller and Bob Bernstein.
 \end{enumerate}
@@ -238,7 +241,7 @@ these ideas are defined in reference~\cite{TriggerSU2020}.
 \section{Computing Costs}
 
 \fixme{Reference Stu's document.  As of this writing we are
-directly paying for any of this.}
+not paying directly for any of this.}
 
 \section{Prerequisites}
 \label{sec:prerequisites}
@@ -260,4 +263,4 @@ This includes understanding the ideas of File Families and Small File Aggregatio
 Some additional details about tapes, including SFA configurations, are given in Appendix~\ref{app:AboutTapes}.
 
 It is assumed that the reader knows the Mu2e standards and practices regarding SAM file names\cite{Mu2eSAM}
-location of files in tape backed dCache\cite{FileNames}, and file families.
+location of files in tape backed dCache\cite{FileNames}, and file families\cite{Mu2eFileFamilies}.
