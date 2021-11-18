@@ -47,6 +47,10 @@ Below is a list of questions that must be addressed during the design of the RDM
     If not, do we ask TDAQ to buy more space or do we live with a shorter maximum buffering time?
     The size of the buffer will not be an issue until we are commissioning with beam so this does not need to
     be addressed soon and it need not be on-project.
+  \item When doing the previous item, measure the root file sizes.
+    Previous estimates only used the size in memory predicted by the subsystems;
+    on the one hand it did not account for compression;
+    on the other hand it did not account for the run objects, subrun object, or the RootFileDB.
   \item Work with the TDAQ team to define a protocol for TDAQ to inform us when new files are available.
     My instinct is that we don't to walk the file system discover files that need to be moved to tape.
     I prefer that we receive a message and manage a queue; this implies persistency for the queue state
