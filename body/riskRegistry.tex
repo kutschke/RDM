@@ -1,6 +1,19 @@
 \chapter{Risk Registry}
 \label{ch:RiskRegistry}
 
+\section{CRV Data Split from the Trk+Cal Data}
+\label{sec:Risk:NonAtomicSubruns}
+
+The TDAQ group is concerned that bandwidth limitations and lack of buffering
+space may require a different operating mode than described above.  If that
+happens they have proposed this workaround: write the Trk+Cal data products
+from each event to one file in the DLLS but write the CRV data products for
+the same event to a separate file in the DLLS.  If this happens one
+of the responsibilities of the Offline team will be to merge this these files.
+The solution may be within the RDM system, in Pass1 or distributed across the two.
+This section explains the problem and explains our understanding of the solution
+proposed by the TDAQ team.
+
 \section{Non-atomic Subruns from TDAQ}
 \label{sec:Risk:NonAtomicSubruns}
 
